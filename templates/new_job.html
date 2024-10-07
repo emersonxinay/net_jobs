@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <title>Nuevo Empleo</title>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1>Publicar Nuevo Empleo</h1>
+      <form method="POST">
+        <!-- Campo para el título del trabajo -->
+        <div class="form-group">
+          <label for="title">Título del Trabajo</label>
+          <input
+            type="text"
+            class="form-control"
+            name="title"
+            id="title"
+            placeholder="Título del Trabajo"
+            required
+          />
+        </div>
+
+        <!-- Campo para la descripción del trabajo -->
+        <div class="form-group">
+          <label for="description">Descripción del Trabajo</label>
+          <textarea
+            class="form-control"
+            name="description"
+            id="description"
+            placeholder="Descripción del Trabajo"
+            rows="4"
+            required
+          ></textarea>
+        </div>
+
+        <!-- Checkbox para indicar si el trabajo es urgente -->
+        <div class="form-group form-check">
+          <input
+            type="checkbox"
+            class="form-check-input"
+            name="urgent"
+            id="urgent"
+          />
+          <label class="form-check-label" for="urgent">¿Es Urgente?</label>
+        </div>
+
+        <!-- Campo para la ubicación del trabajo -->
+        <div class="form-group">
+          <label for="locationn">Lugar</label>
+          <input
+            type="text"
+            class="form-control"
+            name="locationn"
+            id="locationn"
+            placeholder="Lugar"
+            required
+          />
+        </div>
+
+        <!-- Campo para la fecha exacta del trabajo -->
+        <div class="form-group">
+          <label for="exact_date">Fecha Exacta</label>
+          <input
+            type="date"
+            class="form-control"
+            name="exact_date"
+            id="exact_date"
+            required
+          />
+        </div>
+
+        <!-- Campo para la hora de inicio -->
+        <div class="form-group">
+          <label for="start_time">Hora de Inicio</label>
+          <input
+            type="time"
+            class="form-control"
+            name="start_time"
+            id="start_time"
+            required
+          />
+        </div>
+
+        <!-- Campo para la hora de finalización -->
+        <div class="form-group">
+          <label for="end_time">Hora de Finalización</label>
+          <input
+            type="time"
+            class="form-control"
+            name="end_time"
+            id="end_time"
+            required
+          />
+        </div>
+
+        <!-- Campo para el número de contacto -->
+        <div class="form-group">
+          <label for="contact_number">Número de Contacto</label>
+          <input
+            type="text"
+            class="form-control"
+            name="contact_number"
+            id="contact_number"
+            placeholder="Número de Contacto"
+            required
+          />
+        </div>
+
+        <!-- Botón para enviar el formulario -->
+        <button type="submit" class="btn btn-primary">Publicar Empleo</button>
+      </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>
