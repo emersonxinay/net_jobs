@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T&D - Crear Publicación</title>
+    <link rel="stylesheet" href="templates/assets/css/formulario.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <img src="templates/assets/img/pixelcut-export.png" alt="T&D Logo" class="logo">
+        <nav>
+            <a href="publicaciones.html" class="nav-button">Publicaciones</a>
+            <a href="formulario.html" class="nav-button">Publicar</a>
+            <a href="perfil.html" class="nav-button">Perfil</a>
+            <a href="chats.html" class="nav-button">Chats</a>
+            <a href="#" class="nav-button">Ayuda</a>
+            <a href="contacto.html" class="nav-button">Contacto</a>
+            <a href="index.html" class="nav-button">Cerrar sesión</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <h2>Los más requeridos</h2>
+            <h2>Los mejores en tu zona</h2>
+            <h2>Recomendado para ti</h2>
+            <h2>Filtrar</h2>
+            <ul>
+                <li>Fecha</li>
+                <li>Categoría</li>
+                <li>Urgente</li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <h1>Crear publicación</h1>
+            <form id="job-posting-form">
+                <div class="form-group">
+                    <label for="job-name">Nombre del trabajo:</label>
+                    <input type="text" id="job-name" name="job-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="category">Categoría:</label>
+                    <select id="category" name="category" required>
+                        <option value="">Selecciona una categoría</option>
+                        <option value="limpieza">Limpieza</option>
+                        <option value="jardineria">Jardinería</option>
+                        <option value="reparaciones">Reparaciones</option>
+                        <option value="cuidado">Cuidado de personas</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="price">Precio:</label>
+                    <input type="text" id="price" name="price" required>
+                </div>
+                <div class="form-group">
+                    <label for="date">Fecha:</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="decision">Urgencia:</label>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="decision" name="decision">
+                        <label for="decision"></label>
+                    </div>
+                </div>
+                <button type="submit" class="publish-button">Publicar</button>
+            </form>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

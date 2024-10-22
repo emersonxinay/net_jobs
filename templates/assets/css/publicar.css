@@ -1,0 +1,268 @@
+:root {
+    --primary-color: #4CAF50;
+    --primary-hover: #45a049;
+    --background-color: #f0f8ff;
+    --white: #ffffff;
+    --gray-100: #f7fafc;
+    --gray-200: #edf2f7;
+    --gray-300: #e2e8f0;
+    --gray-600: #718096;
+    --gray-700: #4a5568;
+    --red-500: #f56565;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--gray-700);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+header {
+    background: linear-gradient(to right, var(--primary-color), var(--primary-hover));
+    color: var(--white);
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid var(--white);
+}
+
+nav {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-button {
+    color: white;
+    text-decoration: none;
+    margin-left: 15px;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.nav-button:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+main {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.sidebar {
+    width: 25%;
+}
+
+.panel {
+    background-color: var(--white);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+h2 {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.group-list {
+    list-style-type: none;
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+.group-list li {
+    padding: 0.5rem;
+    cursor: pointer;
+    border-radius: 0.25rem;
+    transition: background-color 0.3s;
+}
+
+.group-list li:hover, .group-list li.active {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.date-button, .category-select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 0.25rem;
+    background-color: var(--white);
+    cursor: pointer;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.search-button {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.search-button:hover {
+    background-color: var(--primary-hover);
+}
+
+.job-listings {
+    width: 50%;
+}
+
+h1 {
+    color: var(--primary-color);
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.job-card {
+    background-color: var(--white);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.urgent-tag {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: var(--red-500);
+    color: var(--white);
+    padding: 0.25rem 0.5rem;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.job-content {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.job-info h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+}
+
+.job-info p {
+    margin: 0;
+    color: var(--gray-600);
+}
+
+.category {
+    color: var(--primary-color);
+}
+
+.job-actions {
+    text-align: right;
+}
+
+.price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.info-button {
+    background: none;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.info-button:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.contact-button {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.contact-button:hover {
+    background-color: var(--primary-hover);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 1rem;
+}
+
+.user-name {
+    font-weight: bold;
+    margin: 0;
+}
+
+.user-time {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.additional-info {
+    color: var(--gray-700);
+}

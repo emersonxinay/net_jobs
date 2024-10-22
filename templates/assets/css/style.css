@@ -1,0 +1,70 @@
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e6f3e6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 800px;
+        }
+        .logo {
+            text-align: center;
+            padding: 20px;
+        }
+        .logo img {
+            width: 200px;
+            height: 200px;
+        }
+        .message {
+            background-color: #2a9d8f;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 20px;
+            border-radius: 5px;
+        }
+        .buttons {
+            text-align: center;
+            padding: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn-primary {
+            background-color: #2a9d8f;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #e9c46a;
+            color: black;
+        }
+        .services {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .service-item {
+            display: flex;
+            align-items: center;
+        }
+        .service-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        };
