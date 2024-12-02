@@ -57,6 +57,37 @@ ejemplo:
 python app.py
 ```
 
+### Para recuperar contraseña:
+- para crear un servidor de correo local 
+primero correr este comando
+```bash
+python -m smtpd -n -c DebuggingServer localhost:8025
+```
+- correr desde la ruta para recuperar correo en 
+```bash
+http://127.0.0.1:5000/forgot_password
+```
+volvemos a la terminal donde esta corriendo el servidor email local, y veremos algo asi:
+```bash
+---------- MESSAGE FOLLOWS ----------
+b'Content-Type: text/plain; charset="utf-8"'
+b'MIME-Version: 1.0'
+b'Content-Transfer-Encoding: 7bit'
+b'Subject: =?utf-8?q?Recuperaci=C3=B3n_de_password?='
+b'From: tu_correo@example.com'
+b'To: xinayespinoza@gmail.com'
+b'Date: Mon, 02 Dec 2024 20:06:43 -0300'
+b'Message-ID:'
+b' <173318080355.53585.11486209017628377374@124.0.168.192.in-addr.arpa>'
+b'X-Peer: ::1'
+b''
+b'Para restablecer tu password, haz clic en el siguiente enlace: http://127.0.0.1:5000/reset_password/ZUn-LEKhAsR1OMH6lOYpFgaGnYACxOwz0nVV8pB9ixU'
+------------ END MESSAGE ------------
+```
+y copiar o hacer click en el enlace para restablecer la contraseña
+
+
+
 
 
 

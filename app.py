@@ -4,17 +4,32 @@ from flask_bcrypt import Bcrypt
 import psycopg2
 import psycopg2.extras
 from psycopg2.extras import RealDictCursor
-from datetime import datetime
+from datetime import datetime, timedelta
+from flask_mail import Mail, Message
+import secrets
+
+# Configuración de la aplicación
 
 
+class Config:
+    SECRET_KEY = 'tu_secreto'
+    MAIL_SERVER = 'localhost'  # Servidor local para pruebas
+    MAIL_PORT = 8025           # Puerto local para el servidor SMTP de pruebas
+    MAIL_USE_TLS = False       # No es necesario TLS en pruebas locales
+    MAIL_USERNAME = 'tu_correo@example.com'  # Remitente por defecto
+    MAIL_PASSWORD = None
+    MAIL_DEFAULT_SENDER = 'tu_correo@example.com'  # Agrega esto
+
+
+# Inicialización de Flask
 app = Flask(__name__)
-app.config.from_object('config.Config')
+app.config.from_object(Config)
 
+# Inicialización de extensiones
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
-
-# Conexión a PostgreSQL
+mail = Mail(app)
 
 
 def get_db_connection():
@@ -52,12 +67,19 @@ def load_user(user_id):
 def register():
     if request.method == 'POST':
         username = request.form['username']
+        email = request.form['email']
         password = bcrypt.generate_password_hash(
             request.form['password']).decode('utf-8')
+        # Verifica que el email no esté vacío antes de proceder
+        if not email:
+            flash('El email es obligatorio', 'danger')
+            return redirect(url_for('register'))
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
+        cur.execute("""
+            INSERT INTO users (username, email, password) 
+            VALUES (%s, %s, %s)
+        """, (username, email, password))
         conn.commit()
         conn.close()
         flash('Registro exitoso. Por favor, inicia sesión.', 'success')
@@ -275,6 +297,78 @@ def conversations():
     except Exception as e:
         flash(f"Error al cargar las conversaciones: {e}", "danger")
         return redirect(url_for('dashboard'))
+
+# para recuperar password
+
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT * FROM users WHERE email = %s", (email,))
+        user = cur.fetchone()
+        conn.close()
+
+        if user:
+            token = secrets.token_urlsafe(32)
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("""
+                UPDATE users SET reset_token = %s, reset_expiration = %s WHERE email = %s
+            """, (token, datetime.utcnow() + timedelta(hours=1), email))
+            conn.commit()
+            cur.close()
+            conn.close()
+
+            reset_url = url_for('reset_password', token=token, _external=True)
+            msg = Message('Recuperación de password',
+                          sender=app.config['MAIL_DEFAULT_SENDER'], recipients=[email])
+            msg.body = f'Para restablecer tu password, haz clic en el siguiente enlace: {
+                reset_url}'
+            msg.charset = 'utf-8'
+            mail.send(msg)
+
+            flash(
+                'Se ha enviado un correo con instrucciones para restablecer tu password.', 'success')
+        else:
+            flash('No se encontró una cuenta con ese correo electrónico.', 'danger')
+
+        return redirect(url_for('login'))
+
+    return render_template('forgot_password.html')
+
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("""
+        SELECT * FROM users WHERE reset_token = %s AND reset_expiration > %s
+    """, (token, datetime.utcnow()))
+    user = cur.fetchone()
+    conn.close()
+
+    if not user:
+        flash('El enlace de restablecimiento no es válido o ha expirado.', 'danger')
+        return redirect(url_for('forgot_password'))
+
+    if request.method == 'POST':
+        new_password = bcrypt.generate_password_hash(
+            request.form['password']).decode('utf-8')
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE users SET password = %s, reset_token = NULL, reset_expiration = NULL WHERE id = %s
+        """, (new_password, user['id']))
+        conn.commit()
+        cur.close()
+        conn.close()
+        flash('Tu password ha sido restablecida exitosamente.', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('reset_password.html', token=token)
 
 
 if __name__ == '__main__':
