@@ -212,22 +212,22 @@ def get_jobs():
     return jobs
 
 
-@app.route('/send_message/<int:receiver_id>', methods=['POST'])
+@app.route('/send_message/<int:receiver_id>/<int:job_id>', methods=['POST'])
 @login_required
-def send_message(receiver_id):
+def send_message(receiver_id, job_id):
     message = request.form['message']
 
     if not message.strip():
         flash("El mensaje no puede estar vacío.", "warning")
-        return redirect(url_for('chat', user_id=receiver_id))
+        return redirect(url_for('chat', user_id=receiver_id, job_id=job_id))
 
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO messages (sender_id, receiver_id, message)
-            VALUES (%s, %s, %s)
-        """, (current_user.id, receiver_id, message))
+            INSERT INTO messages (sender_id, receiver_id, message, job_id)
+            VALUES (%s, %s, %s, %s)
+        """, (current_user.id, receiver_id, message, job_id))
         conn.commit()
         cur.close()
         conn.close()
@@ -237,19 +237,20 @@ def send_message(receiver_id):
             'sender_id': current_user.id,
             'message': message,
             'timestamp': 'Ahora mismo',
-            'receiver_id': receiver_id
+            'receiver_id': receiver_id,
+            'job_id': job_id  # Incluir job_id
         }, room=receiver_id)  # Emitir solo a ese usuario
 
         flash("Mensaje enviado exitosamente.", "success")
     except Exception as e:
         flash(f"Error al enviar el mensaje: {e}", "danger")
 
-    return redirect(url_for('chat', user_id=receiver_id))
+    return redirect(url_for('chat', user_id=receiver_id, job_id=job_id))
 
 
-@app.route('/chat/<int:user_id>', methods=['GET'])
+@app.route('/chat/<int:user_id>/<int:job_id>', methods=['GET'])
 @login_required
-def chat(user_id):
+def chat(user_id, job_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -259,21 +260,21 @@ def chat(user_id):
             SELECT u.id, u.username, j.title AS job_title
             FROM users u
             LEFT JOIN jobs j ON u.id = j.user_id
-            WHERE u.id = %s
-        """, (user_id,))
+            WHERE u.id = %s AND j.id = %s
+        """, (user_id, job_id))
         chat_user = cur.fetchone()
 
         if not chat_user:
-            flash("Usuario no encontrado.", "danger")
+            flash("Usuario o trabajo no encontrado.", "danger")
             return redirect(url_for('dashboard'))
 
-        # Obtener todos los mensajes entre el usuario actual y el chat_user
+        # Obtener todos los mensajes entre el usuario actual y el chat_user para ese trabajo
         cur.execute("""
             SELECT * FROM messages
-            WHERE (sender_id = %s AND receiver_id = %s)
-               OR (sender_id = %s AND receiver_id = %s)
+            WHERE (sender_id = %s AND receiver_id = %s AND job_id = %s)
+               OR (sender_id = %s AND receiver_id = %s AND job_id = %s)
             ORDER BY timestamp ASC
-        """, (current_user.id, user_id, user_id, current_user.id))
+        """, (current_user.id, user_id, job_id, user_id, current_user.id, job_id))
 
         messages = cur.fetchall()
         cur.close()
@@ -292,26 +293,40 @@ def handle_send_message(data):
     sender_id = data['sender_id']
     receiver_id = data['receiver_id']
     message = data['message']
+    # Asegúrate de que el job_id se pase desde el frontend
+    job_id = data.get('job_id')
     timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
 
-    # Guardar el mensaje en la base de datos
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO messages (sender_id, receiver_id, message, timestamp)
-        VALUES (%s, %s, %s, %s)
-    """, (sender_id, receiver_id, message, timestamp))
-    conn.commit()
-    cur.close()
-    conn.close()
+    # Verificar si job_id es válido
+    if not job_id:
+        print("Error: El job_id es necesario para enviar el mensaje.")
+        return  # Si no hay job_id, no guardamos el mensaje
 
-    # Emitir el mensaje a la sala correspondiente
-    emit('new_message', {
-        'sender_id': sender_id,
-        'receiver_id': receiver_id,
-        'message': message,
-        'timestamp': timestamp
-    }, room=str(receiver_id))  # Enviar solo al usuario receptor
+    # Guardar el mensaje en la base de datos
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Inserta el mensaje con job_id en la base de datos
+        cur.execute("""
+            INSERT INTO messages (sender_id, receiver_id, job_id, message, timestamp)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (sender_id, receiver_id, job_id, message, timestamp))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        # Emitir el mensaje a la sala correspondiente
+        emit('new_message', {
+            'sender_id': sender_id,
+            'receiver_id': receiver_id,
+            'job_id': job_id,  # Incluir job_id en el mensaje emitido
+            'message': message,
+            'timestamp': timestamp
+        }, room=str(receiver_id))  # Enviar solo al usuario receptor
+    except Exception as e:
+        print(f"Error al guardar el mensaje: {e}")
 
 
 @socketio.on('connect')
@@ -335,8 +350,6 @@ def handle_new_message(data):
 
 
 # conversaciones
-
-
 @app.route('/conversations', methods=['GET'])
 @login_required
 def conversations():
@@ -344,24 +357,33 @@ def conversations():
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-        # Obtener todos los usuarios con los que el usuario actual ha intercambiado mensajes
+        # Recuperar todas las conversaciones con mensajes relacionados al usuario actual
         cur.execute("""
-            SELECT DISTINCT u.id, u.username
+            SELECT DISTINCT ON (other_user.id, j.id) 
+                other_user.id AS other_user_id, 
+                other_user.username, 
+                j.title AS job_title, 
+                j.id AS job_id
             FROM messages m
-            JOIN users u ON
-                (u.id = m.sender_id OR u.id = m.receiver_id)
-            WHERE (m.sender_id = %s OR m.receiver_id = %s)
-              AND u.id != %s
-        """, (current_user.id, current_user.id, current_user.id))
+            INNER JOIN users other_user 
+                ON (m.sender_id = other_user.id AND m.receiver_id = %s) 
+                OR (m.receiver_id = other_user.id AND m.sender_id = %s)
+            LEFT JOIN jobs j 
+                ON m.job_id = j.id
+            ORDER BY other_user.id, j.id, m.timestamp DESC
+        """, (current_user.id, current_user.id))
 
-        users = cur.fetchall()
+        conversations = cur.fetchall()
+
         cur.close()
         conn.close()
 
-        return render_template('conversations.html', users=users)
+        return render_template('conversations.html', conversations=conversations)
     except Exception as e:
         flash(f"Error al cargar las conversaciones: {e}", "danger")
         return redirect(url_for('dashboard'))
+
+# fin de conversations
 
 # para recuperar password
 

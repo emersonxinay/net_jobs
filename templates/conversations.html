@@ -1,23 +1,29 @@
-{% extends "base.html" %} {% block title %}Tus Conversaciones{% endblock %} {%
-block content %}
+{% extends "base.html" %} {% block content %}
 <div class="container mt-5">
-  <h1>Tus Conversaciones</h1>
+  <h2 class="text-center mb-4">Tus Conversaciones</h2>
+
+  {% if conversations %}
   <ul class="list-group">
-    {% for user in users %}
+    {% for conversation in conversations %}
     <li
       class="list-group-item d-flex justify-content-between align-items-center"
     >
-      <span>{{ user.username }}</span>
+      <div>
+        <strong>{{ conversation.username }}</strong>
+        {% if conversation.job_title %} - {{ conversation.job_title }} {% else
+        %} (Sin empleo asociado) {% endif %}
+      </div>
       <a
-        href="{{ url_for('chat', user_id=user.id) }}"
-        class="btn btn-secondary btn-sm"
-        >Chat</a
+        href="{{ url_for('chat', user_id=conversation.other_user_id, job_id=conversation.job_id) }}"
+        class="btn btn-primary btn-sm"
       >
+        Ver conversación
+      </a>
     </li>
     {% endfor %}
   </ul>
-  <a href="{{ url_for('dashboard') }}" class="btn btn-primary mt-3"
-    >Volver al Dashboard</a
-  >
+  {% else %}
+  <p class="text-muted">No tienes conversaciones aún.</p>
+  {% endif %}
 </div>
 {% endblock %}

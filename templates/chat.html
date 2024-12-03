@@ -6,6 +6,7 @@
   {% else %}
   <p><strong>Empleo:</strong> No disponible</p>
   {% endif %}
+
   <div
     class="messages mb-4"
     style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 10px; padding: 10px;"
@@ -67,9 +68,16 @@
     const messageInput = document.getElementById('message');
     const message = messageInput.value;
 
+    // Verificar si el mensaje y job_id están presentes
+    if (!message || !{{ request.view_args['job_id'] }}) {
+      alert("Por favor, asegúrate de que el mensaje y el empleo estén definidos.");
+      return;
+    }
+
     const data = {
       sender_id: {{ current_user.id }},
       receiver_id: {{ chat_user.id }},
+      job_id: {{ request.view_args['job_id'] }},
       message: message
     };
 

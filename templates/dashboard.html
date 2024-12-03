@@ -51,7 +51,7 @@ content %}
           </div>
           {% if job.user_id != current_user.id %}
           <a
-            href="{{ url_for('chat', user_id=job.user_id) }}"
+            href="{{ url_for('chat', user_id=job.user_id, job_id=job.id) }}"
             class="btn btn-outline-light btn-sm rounded-pill"
           >
             Chat
