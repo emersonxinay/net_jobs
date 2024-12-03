@@ -1,4 +1,3 @@
-<!-- chat.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -33,7 +32,7 @@
   <body>
     <div class="container mt-5 chat-container">
       <h2>Chat con {{ chat_user.username }}</h2>
-      <div class="messages mb-4">
+      <div class="messages mb-4" id="messages">
         {% for msg in messages %} {% if msg.sender_id == current_user.id %}
         <div class="message sent">
           <strong>Tú:</strong> {{ msg.message }}
@@ -48,10 +47,8 @@
         </div>
         {% endif %} {% endfor %}
       </div>
-      <form
-        method="POST"
-        action="{{ url_for('send_message', receiver_id=chat_user.id) }}"
-      >
+
+      <form id="message-form">
         <div class="form-group">
           <label for="message">Enviar Mensaje</label>
           <textarea
@@ -69,8 +66,52 @@
       </form>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <!-- Cambié a la versión completa de jQuery -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
+
+    <script>
+      // Conectar a SocketIO
+      var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+      console.log('Conectando a:', 'http://' + document.domain + ':' + location.port);
+
+      // Evitar el envío tradicional del formulario
+      document.getElementById('message-form').addEventListener('submit', function(e) {
+        e.preventDefault();  // Evita la recarga de la página
+
+        var message = document.getElementById('message').value;
+        var data = {
+          message: message,
+          sender_id: {{ current_user.id }},  // Verifica que este valor se pase correctamente desde Flask
+          receiver_id: {{ chat_user.id }},  // Verifica que este valor se pase correctamente desde Flask
+          timestamp: new Date().toISOString()  // Enviar la fecha en formato ISO
+        };
+
+        // Emitir el mensaje al servidor
+        socket.emit('send_message', data);
+
+        // Limpiar el campo de mensaje
+        document.getElementById('message').value = '';
+      });
+
+      // Cuando se reciba un nuevo mensaje desde el servidor
+      socket.on('new_message', function(data) {
+        console.log(data);
+
+        // Asegúrate de que el receiver_id coincide con el chat_user.id
+        if (data.receiver_id === {{ chat_user.id }}) {
+          var messageDiv = document.createElement('div');
+          messageDiv.classList.add(data.sender_id === {{ current_user.id }} ? 'sent' : 'received');
+          messageDiv.innerHTML = '<strong>' + (data.sender_id === {{ current_user.id }} ? 'Tú' : '{{ chat_user.username }}') + ':</strong> ' + data.message + '<br /><small>' + data.timestamp + '</small>';
+          document.getElementById('messages').appendChild(messageDiv);
+
+          // Desplazar hacia el nuevo mensaje
+          document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+        }
+      });
+    </script>
   </body>
 </html>

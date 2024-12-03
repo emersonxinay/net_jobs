@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_bcrypt import Bcrypt
 import psycopg2
 import psycopg2.extras
@@ -23,6 +24,8 @@ class Config:
 
 # Inicialización de Flask
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'tu_secreto'
+socketio = SocketIO(app)
 app.config.from_object(Config)
 
 # Inicialización de extensiones
@@ -125,10 +128,9 @@ def dashboard():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute("SELECT * FROM jobs ORDER BY urgent DESC, date_posted DESC")
-    jobs = cur.fetchall()
     jobs1 = get_jobs()
     conn.close()
-    return render_template('dashboard.html', jobs=jobs, jobs1=jobs1)
+    return render_template('dashboard.html', jobs=jobs1)
 
 # Ruta para crear un empleo
 
@@ -189,26 +191,6 @@ def get_jobs():
     return jobs
 
 
-# @app.route('/chat/<int:user_id>')
-# @login_required
-# def chat(user_id):
-#     # Aquí puedes implementar la lógica para iniciar una conversación con el usuario con user_id
-#     # Por ejemplo, obtener el usuario y renderizar una plantilla de chat
-#     conn = get_db_connection()
-#     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-#     cur.execute("SELECT username FROM users WHERE id = %s", (user_id,))
-#     user = cur.fetchone()
-#     cur.close()
-#     conn.close()
-#     if user:
-#         return render_template('chat.html', chat_user=user)
-#     else:
-#         flash("Usuario no encontrado.", "danger")
-#         return redirect(url_for('dashboard'))
-
-# mandar mensajes
-
-
 @app.route('/send_message/<int:receiver_id>', methods=['POST'])
 @login_required
 def send_message(receiver_id):
@@ -228,13 +210,20 @@ def send_message(receiver_id):
         conn.commit()
         cur.close()
         conn.close()
+
+        # Emitir el mensaje en tiempo real a través de SocketIO
+        socketio.emit('new_message', {
+            'sender_id': current_user.id,
+            'message': message,
+            'timestamp': 'Ahora mismo',
+            'receiver_id': receiver_id
+        }, room=receiver_id)  # Emitir solo a ese usuario
+
         flash("Mensaje enviado exitosamente.", "success")
     except Exception as e:
         flash(f"Error al enviar el mensaje: {e}", "danger")
 
     return redirect(url_for('chat', user_id=receiver_id))
-
-# chat de conversaciones
 
 
 @app.route('/chat/<int:user_id>', methods=['GET'])
@@ -268,6 +257,56 @@ def chat(user_id):
     except Exception as e:
         flash(f"Error al cargar la conversación: {e}", "danger")
         return redirect(url_for('dashboard'))
+
+
+@socketio.on('send_message')
+def handle_send_message(data):
+    print(f"Recibido mensaje: {data}")  # Para depurar
+
+    sender_id = data['sender_id']
+    receiver_id = data['receiver_id']
+    message = data['message']
+    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+
+    # Guardar el mensaje en la base de datos
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO messages (sender_id, receiver_id, message, timestamp)
+        VALUES (%s, %s, %s, %s)
+    """, (sender_id, receiver_id, message, timestamp))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    # Emitir el mensaje a la sala correspondiente
+    emit('new_message', {
+        'sender_id': sender_id,
+        'receiver_id': receiver_id,
+        'message': message,
+        'timestamp': timestamp
+    }, room=str(receiver_id))  # Enviar solo al usuario receptor
+
+
+@socketio.on('connect')
+def handle_connect():
+    """Se ejecuta cuando un cliente se conecta"""
+    print(f"Cliente {current_user.id} conectado")
+    join_room(current_user.id)
+
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """Se ejecuta cuando un cliente se desconecta"""
+    leave_room(current_user.id)
+
+
+@socketio.on('new_message')
+def handle_new_message(data):
+    """Recibe un nuevo mensaje de un cliente"""
+    # Podrías hacer más cosas aquí como validar o almacenar los mensajes
+    print(f"Nuevo mensaje de {data['sender_id']}: {data['message']}")
+
 
 # conversaciones
 
@@ -372,4 +411,4 @@ def reset_password(token):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)

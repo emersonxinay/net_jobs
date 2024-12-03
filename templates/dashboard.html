@@ -42,12 +42,15 @@
                 {{ job.date_posted }}</small
               >
             </div>
+
             <div>
+              {% if job.user_id != current_user.id %}
               <a
                 href="{{ url_for('chat', user_id=job.user_id) }}"
                 class="btn btn-secondary btn-sm"
                 >Chat</a
               >
+              {% endif %}
             </div>
           </div>
         </li>
