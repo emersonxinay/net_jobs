@@ -1,15 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>Register</title>
-  </head>
-  <body>
-    <form method="POST">
-      <input type="text" name="username" placeholder="Username" required />
-      <input type="email" name="email" placeholder="Email" required />
-      <!-- Campo email -->
-      <input type="password" name="password" placeholder="Password" required />
-      <button type="submit">Register</button>
-    </form>
-  </body>
-</html>
+{% extends "base.html" %} {% block title %}Registrar Cuenta{% endblock %} {%
+block content %}
+<div class="container d-flex justify-content-center align-items-center vh-100">
+  <div class="row w-100">
+    <div class="col-md-6 col-lg-4 mx-auto">
+      <div class="card shadow-lg">
+        <div class="card-body p-4">
+          <h3 class="text-center mb-4">Crear una Cuenta</h3>
+          <form method="POST">
+            <div class="form-group">
+              <label for="username">Nombre de Usuario</label>
+              <input
+                type="text"
+                class="form-control"
+                id="username"
+                name="username"
+                placeholder="Nombre de Usuario"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="email">Correo Electrónico</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                name="email"
+                placeholder="Correo Electrónico"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="password">Contraseña</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                name="password"
+                placeholder="Contraseña"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+              Registrar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

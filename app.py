@@ -119,7 +119,27 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-# Ruta para el dashboard de empleos
+# perfil de usuario
+
+
+@app.route('/profile')
+def profile():
+    return render_template('profile.html')
+
+# ruta dashboard publico
+
+
+@app.route('/public_dashboard')
+def public_dashboard():
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(
+        "SELECT * FROM jobs ORDER BY urgent DESC, date_posted DESC LIMIT 5")
+    jobs1 = get_jobs()
+    conn.close()
+    return render_template('public_dashboard.html', jobs=jobs1)
+
+# Ruta para el dashboard privado de empleos
 
 
 @app.route('/dashboard')
@@ -233,8 +253,13 @@ def chat(user_id):
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-        # Obtener la información del usuario con el que se está chateando
-        cur.execute("SELECT id, username FROM users WHERE id = %s", (user_id,))
+        # Obtener la información del usuario con el que se está chateando y su empleo
+        cur.execute("""
+            SELECT u.id, u.username, j.title AS job_title
+            FROM users u
+            LEFT JOIN jobs j ON u.id = j.user_id
+            WHERE u.id = %s
+        """, (user_id,))
         chat_user = cur.fetchone()
 
         if not chat_user:

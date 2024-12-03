@@ -1,13 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>Login</title>
-  </head>
-  <body>
-    <form method="POST">
-      <input type="text" name="username" placeholder="Username" required />
-      <input type="password" name="password" placeholder="Password" required />
-      <button type="submit">Login</button>
-    </form>
-  </body>
-</html>
+{% extends "base.html" %} {% block title %}Iniciar Sesión{% endblock %} {% block
+content %}
+<div class="container d-flex justify-content-center align-items-center vh-100">
+  <div class="row w-100">
+    <div class="col-md-6 col-lg-4 mx-auto">
+      <div class="card shadow-lg">
+        <div class="card-body p-4">
+          <h3 class="text-center mb-4">Iniciar Sesión</h3>
+          <form method="POST">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input
+                type="text"
+                class="form-control"
+                id="username"
+                name="username"
+                placeholder="Username"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                name="password"
+                placeholder="Password"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+              Login
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
-{% extends "base.html" %} {% block title %}Dashboard{% endblock %} {% block
-content %}
+{% extends "base.html" %} {% block title %}Dashboard Público{% endblock %} {%
+block content %}
 <div class="container mt-5">
   <h1>Ofertas de Trabajo</h1>
   <a href="{{ url_for('new_job') }}" class="btn btn-primary mb-3"
@@ -36,9 +36,8 @@ content %}
           <a
             href="{{ url_for('chat', user_id=job.user_id) }}"
             class="btn btn-secondary btn-sm"
+            >Chat</a
           >
-            Chat
-          </a>
           {% endif %}
         </div>
       </div>
