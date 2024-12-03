@@ -62,7 +62,18 @@ def load_user(user_id):
     if user:
         return User(id=user['id'], username=user['username'], password=user['password'])
     return None
+# ruta raiz dasboard publico
 
+
+@app.route('/')
+def home():
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(
+        "SELECT * FROM jobs ORDER BY urgent DESC, date_posted DESC LIMIT 5")
+    jobs1 = get_jobs()
+    conn.close()
+    return render_template('public_dashboard.html', jobs=jobs1)
 # Ruta para el registro de usuarios
 
 
@@ -128,16 +139,6 @@ def profile():
 
 # ruta dashboard publico
 
-
-@app.route('/public_dashboard')
-def public_dashboard():
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute(
-        "SELECT * FROM jobs ORDER BY urgent DESC, date_posted DESC LIMIT 5")
-    jobs1 = get_jobs()
-    conn.close()
-    return render_template('public_dashboard.html', jobs=jobs1)
 
 # Ruta para el dashboard privado de empleos
 

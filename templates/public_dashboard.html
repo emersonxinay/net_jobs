@@ -1,21 +1,31 @@
-{% extends "base.html" %} {% block title %}Dashboard Público{% endblock %} {%
-block content %}
+{% extends "base.html" %} {% block title %}Red Jóvenes - Empleos Rápidos{%
+endblock %} {% block content %}
 <div class="container mt-5">
-  <h1>Ofertas de Trabajo</h1>
-  <a href="{{ url_for('new_job') }}" class="btn btn-primary mb-3"
-    >Publicar Nuevo Empleo</a
-  >
-  <a href="{{ url_for('conversations') }}" class="btn btn-info mb-3"
-    >Mis Conversaciones</a
-  >
+  <h1 class="text-center text-primary mb-4">Ofertas de Trabajo</h1>
 
-  <ul class="list-group">
+  <div class="d-flex justify-content-between mb-4">
+    <a
+      href="{{ url_for('new_job') }}"
+      class="btn btn-primary px-4 py-2 rounded-pill"
+      >Publicar Nuevo Empleo</a
+    >
+    <a
+      href="{{ url_for('conversations') }}"
+      class="btn btn-info px-4 py-2 rounded-pill"
+      >Mis Conversaciones</a
+    >
+  </div>
+
+  <div class="row g-4">
     {% for job in jobs %}
-    <li class="list-group-item">
-      <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <h5 class="mb-1">{{ job.title }}</h5>
-          <p class="mb-1">{{ job.description }}</p>
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card shadow-sm border-light rounded">
+        <div class="card-body">
+          <h5 class="card-title text-primary">{{ job.title }}</h5>
+          <p class="card-text text-muted small">
+            {{ job.description[:100] }}{% if job.description|length > 100
+            %}...{% endif %}
+          </p>
           <p><strong>Lugar:</strong> {{ job.locationn }}</p>
           <p><strong>Fecha:</strong> {{ job.exact_date }}</p>
           <p>
@@ -25,24 +35,31 @@ block content %}
             <strong>Publicado por:</strong> {{ job.username }} (Tel: {{
             job.phone_number }})
           </p>
-          <small
-            >{{ 'Urgente' if job.urgent else 'No Urgente' }} - Publicado el {{
-            job.date_posted }}</small
-          >
+          <p class="text-muted small">
+            {{ 'Urgente' if job.urgent else 'No Urgente' }} - Publicado el {{
+            job.date_posted }}
+          </p>
         </div>
-
-        <div>
+        <div
+          class="card-footer bg-light d-flex justify-content-between align-items-center"
+        >
           {% if job.user_id != current_user.id %}
           <a
             href="{{ url_for('chat', user_id=job.user_id) }}"
-            class="btn btn-secondary btn-sm"
+            class="btn btn-outline-secondary btn-sm rounded-pill"
             >Chat</a
           >
           {% endif %}
         </div>
       </div>
-    </li>
+    </div>
     {% endfor %}
-  </ul>
+  </div>
+
+  {% if not jobs %}
+  <div class="alert alert-warning text-center mt-4">
+    No hay ofertas de trabajo disponibles actualmente.
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
