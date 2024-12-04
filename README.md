@@ -94,7 +94,7 @@ Perfil
 <img src="./static/img/perfil.png">
 
 conversaciones
-<img src="./static/img/conversaciones.png>"
+<img src="./static/img/conversaciones.png">
 
 Nuevo Empleo
 <img src="./static/img/nuevo_empleo.png">
