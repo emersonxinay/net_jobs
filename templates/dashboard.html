@@ -1,65 +1,110 @@
 {% extends "base.html" %} {% block title %}Dashboard{% endblock %} {% block
 content %}
 <div class="container mt-5">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="text-white">Ofertas de Trabajo</h1>
+  <!-- Header Section -->
+  <div
+    class="d-flex flex-column flex-md-row justify-content-between align-items-center text-center gap-4 py-4 px-3  rounded shadow-sm"
+  >
+    <!-- Título e Información -->
     <div>
+      <h1 class="text-white fw-bold">Ofertas de Trabajo</h1>
+      <h3 class="text-info fw-semibold">Para Jóvenes</h3>
+      <p class="text-light">Oportunidades laborales por horas</p>
+    </div>
+
+    <!-- Botones -->
+    <div class="d-flex flex-column flex-md-row gap-3">
       <a
         href="{{ url_for('new_job') }}"
-        class="btn btn-primary px-4 py-2 rounded-pill me-2"
+        class="btn btn-primary px-4 py-2 rounded-pill shadow-sm text-uppercase fw-semibold"
       >
         Publicar Nuevo Empleo
       </a>
       <a
         href="{{ url_for('conversations') }}"
-        class="btn btn-info px-4 py-2 rounded-pill"
+        class="btn btn-info px-4 py-2 rounded-pill shadow-sm text-uppercase fw-semibold"
       >
         Mis Conversaciones
       </a>
     </div>
   </div>
 
+  <!-- Job Listings -->
   {% if jobs %}
   <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
     {% for job in jobs %}
     <div class="col">
-      <div class="card shadow-sm h-100 bg-gradient bg-primary text-white">
-        <div class="card-body">
-          <h5 class="card-title fw-bold">{{ job.title }}</h5>
-          <p class="card-text text-muted small">
-            <strong>Lugar:</strong> {{ job.locationn }}<br />
-            <strong>Fecha:</strong> {{ job.exact_date }}<br />
-            <strong>Hora:</strong> De {{ job.start_time }} a {{ job.end_time }}
+      <div class="card shadow-lg h-100 border-0">
+        <div class="card-body bg-gradient-card rounded-top">
+          <!-- Título -->
+          <h5 class="card-title text-truncate text-primary fw-bold">
+            {{ job.title }}
+          </h5>
+
+          <!-- Información del Trabajo -->
+          <p class="card-text text-muted small mb-2">
+            <strong class="text-dark">📍 Lugar:</strong> {{ job.locationn }}<br />
+            <strong class="text-dark">📅 Fecha:</strong> {{ job.exact_date }}<br />
+            <strong class="text-dark">⏰ Hora:</strong> De {{ job.start_time }}
+            a {{ job.end_time }}
           </p>
-          <p class="card-text">
-            {{ job.description[:100] }}{% if job.description|length > 100
+
+          <!-- Descripción -->
+          <p class="card-text text-truncate">
+            {{ job.description[:120] }} {% if job.description|length > 120
             %}...{% endif %}
           </p>
+
+          <!-- Precio -->
+          {% if job.price %}
+          <p class="text-success fw-bold mt-3 mb-0">💰 Precio por trabajo:</p>
+          <p class="h5 text-success fw-bold mt-1 mb-0">${{ job.price }}</p>
+          {% else %}
+          <p class="text-muted mt-3">
+            <strong>No se ha publicado precio por trabajo</strong>
+          </p>
+          {% endif %}
         </div>
+
+        <!-- Footer -->
         <div
-          class="card-footer bg-transparent d-flex justify-content-between align-items-center"
+          class="card-footer bg-white border-top d-flex justify-content-between align-items-center"
         >
+          <!-- Urgencia -->
           <div>
             <span
-              class="badge {{ 'bg-danger' if job.urgent else 'bg-secondary' }}"
+              class="badge text-uppercase {{ 'bg-danger' if job.urgent else 'bg-secondary' }}"
             >
               {{ 'Urgente' if job.urgent else 'No Urgente' }}
             </span>
             <small class="text-muted ms-2">
-              Publicado por {{ job.username }} (Tel: {{ job.phone_number }})
+              Publicado por <strong>{{ job.username }}</strong> (📞 {{
+              job.phone_number }})
             </small>
           </div>
-          {% if job.user_id != current_user.id %}
-          <a
-            href="{{ url_for('chat', user_id=job.user_id, job_id=job.id) }}"
-            class="btn btn-outline-light btn-sm rounded-pill"
-          >
-            Chat
-          </a>
-          {% endif %}
+
+          <!-- Botones -->
+          <div class="d-flex">
+            {% if job.user_id == current_user.id %}
+            <a
+              href="{{ url_for('edit_job', job_id=job.id) }}"
+              class="btn btn-success btn-sm rounded-pill ms-2 shadow-sm"
+            >
+              ✏️ Editar
+            </a>
+            {% endif %} {% if job.user_id != current_user.id %}
+            <a
+              href="{{ url_for('chat', user_id=job.user_id, job_id=job.id) }}"
+              class="btn btn-outline-primary btn-sm rounded-pill ms-2 shadow-sm"
+            >
+              💬 Chat
+            </a>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>
+
     {% endfor %}
   </div>
   {% else %}

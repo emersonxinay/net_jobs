@@ -3,27 +3,56 @@
   <h2 class="text-center mb-4">Tus Conversaciones</h2>
 
   {% if conversations %}
-  <ul class="list-group">
-    {% for conversation in conversations %}
-    <li
-      class="list-group-item d-flex justify-content-between align-items-center"
-    >
-      <div>
-        <strong>{{ conversation.username }}</strong>
-        {% if conversation.job_title %} - {{ conversation.job_title }} {% else
-        %} (Sin empleo asociado) {% endif %}
-      </div>
-      <a
-        href="{{ url_for('chat', user_id=conversation.other_user_id, job_id=conversation.job_id) }}"
-        class="btn btn-primary btn-sm"
-      >
-        Ver conversación
-      </a>
-    </li>
-    {% endfor %}
-  </ul>
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Puesto de Trabajo</th>
+          <th>Fecha del Trabajo</th>
+          <th>Pago</th>
+          <th>Horas</th>
+          <th>Ver Conversación</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for conversation in conversations|sort(attribute='last_message_time',
+        reverse=True) %}
+        <tr>
+          <td>{{ conversation.username }}</td>
+          <td>
+            {% if conversation.job_title %} {{ conversation.job_title }} {% else
+            %} (Sin puesto de trabajo) {% endif %}
+          </td>
+          <td>
+            {% if conversation.job_date %} {{ conversation.job_date }} {% else
+            %} (Fecha no especificada) {% endif %}
+          </td>
+          <td>
+            {% if conversation.job_payment %} ${{
+            '%.2f'|format(conversation.job_payment) }} {% else %} (Pago no
+            especificado) {% endif %}
+          </td>
+          <td>
+            {% if conversation.job_hours %} {{
+            '%.2f'|format(conversation.job_hours) }} horas {% else %} (Duración
+            no especificada) {% endif %}
+          </td>
+          <td>
+            <a
+              href="{{ url_for('chat', user_id=conversation.other_user_id, job_id=conversation.job_id) }}"
+              class="btn btn-primary btn-sm"
+            >
+              Ver Conversación
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
-  <p class="text-muted">No tienes conversaciones aún.</p>
+  <p class="text-muted text-center">No tienes conversaciones aún.</p>
   {% endif %}
 </div>
 {% endblock %}

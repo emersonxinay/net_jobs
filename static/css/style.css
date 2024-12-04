@@ -1,0 +1,262 @@
+/* Body con un fondo degradado */
+.bg-gradient {
+  background: linear-gradient(to bottom right, #6a11cb, #2575fc); /* Degradado de morado a azul */
+  min-height: 100vh; /* Asegura que el fondo cubra toda la altura de la pantalla */
+  color: #fff; /* Asegura que el texto sea blanco sobre el fondo oscuro */
+  display: flex;
+  flex-direction: column;
+}
+
+
+.bg-gradient-footer {
+  background: linear-gradient(to bottom right, #6a11cb, #2575fc); /* Degradado de morado a azul */
+  min-height: 25vh; /* Asegura que el fondo cubra toda la altura de la pantalla */
+  color: #fff; /* Asegura que el texto sea blanco sobre el fondo oscuro */
+  display: flex;
+  flex-direction: column;
+}
+.bg-gradient-card {
+  background: linear-gradient(to bottom right, #60bcd89b, #2575fc); /* Degradado de morado a azul */
+  min-height: 25vh; /* Asegura que el fondo cubra toda la altura de la pantalla */
+  color: #fff; /* Asegura que el texto sea blanco sobre el fondo oscuro */
+  display: flex;
+  flex-direction: column;
+}
+/* Body y estructura general */
+body, html {
+  height: 100%;
+  margin: 0; /* Elimina márgenes predeterminados */
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(to left, #01132d57, #2127018b); /* Degradado de morado a azul */
+}
+
+main {
+  flex: 1; /* Asegura que el contenido ocupe todo el espacio disponible */
+}
+
+/* Navbar */
+.navbar {
+  z-index: 1000; /* Asegura que la navbar esté siempre encima de otros contenidos */
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: linear-gradient(to bottom right, #6a11cb, #2575fc);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  transition: background-color 0.3s ease;
+}
+/* Estilo para el contenedor del navbar */
+.navbar-logo {
+  height: 70px; /* Ajusta la altura del logotipo */
+  width: auto; /* Mantén la proporción del logotipo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease-in-out; /* Efecto suave */
+}
+
+.navbar-logo img {
+  height: 100%; /* Haz que el logotipo use toda la altura del contenedor */
+  width: auto; /* Mantén las proporciones */
+  display: block; /* Elimina espacios innecesarios */
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2)); /* Sombra para resaltar */
+}
+
+.navbar-logo:hover {
+  transform: scale(1.1); /* Aumenta ligeramente el tamaño al pasar el ratón */
+}
+
+
+.navbar.scrolled {
+  background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro transparente cuando se hace scroll */
+}
+
+/* Estilo para íconos dentro de la navbar */
+.navbar-nav .nav-link i {
+  margin-right: 8px;
+  font-size: 1.2em;
+}
+
+/* Navbar en pantallas pequeñas */
+@media (max-width: 768px) {
+  .navbar-nav .nav-link {
+    padding: 10px 0;
+  }
+}
+
+/* Tarjetas con degradado y transparencia */
+.card {
+  border-radius: 15px;
+  background: linear-gradient(to bottom right, rgba(52, 152, 219, 0.8), rgba(46, 204, 113, 0.8)); /* Degradado Azul a Verde */
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px); /* Efecto hover */
+  background: linear-gradient(to bottom right, rgba(52, 152, 219, 0.9), rgba(46, 204, 113, 0.9)); /* Menos transparencia en hover */
+}
+
+/* Estilos de texto en tarjetas */
+.card-title {
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.card-text {
+  color: #f1f1f1;
+}
+
+.card-text strong {
+  color: #f39c12; /* Precios en amarillo */
+}
+
+.display-16, .display-12 {
+  color: #f39c12; /* Colores de texto relacionados con precios */
+}
+
+/* Footer */
+footer {
+  background: linear-gradient(90deg, #4c6ef5, #4f9fff, #8b94e5);
+  color: white;
+  position: relative;
+  bottom: 0;
+  width: 100%;
+  padding: 10px 0;
+  box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  min-height: 50px;
+}
+
+/* Asegura que el footer siempre esté al fondo */
+footer, .container {
+  position: relative;
+  z-index: 10;
+}
+
+/* Social icons */
+.social-icons a {
+  font-size: 1.5em;
+  padding-bottom: 2em;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.social-icons a:hover {
+  transform: scale(1.2);
+  color: #fff; /* Cambia el color al hacer hover */
+}
+
+/* Tabla de conversaciones */
+.table {
+  background: rgba(255, 255, 255, 0.85); /* Fondo blanco con transparencia */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(2, 62, 15, 0.1); /* Sombra ligera para destacar la tabla */
+  transition: background 0.3s ease;
+}
+
+.table thead {
+  background: linear-gradient(to right, #4c6ef5, #6a11cb); /* Degradado de azul a violeta */
+  color: white;
+  font-weight: bold;
+}
+
+.table tbody tr {
+  background: rgba(255, 255, 255, 0.85); /* Fondo blanco con transparencia */
+  transition: background 0.3s ease;
+}
+
+.table tbody tr:hover {
+  background: rgba(52, 152, 219, 0.2); /* Fondo azul claro con transparencia al pasar el mouse */
+}
+
+.table td, .table th {
+  color: #333; /* Texto oscuro para legibilidad */
+}
+
+/* Botón "Ver Conversación" */
+.table .btn-primary {
+  background: linear-gradient(to right, #6a11cb, #2575fc); /* Degradado de morado a azul */
+  border: none;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  transition: background 0.3s ease;
+}
+
+.table .btn-primary:hover {
+  background: linear-gradient(to right, #2575fc, #6a11cb); /* Invertir los colores del gradiente en hover */
+}
+
+/* Título de la página */
+h2.text-center {
+  color: white; /* Título en blanco para contraste */
+}
+
+/* Títulos */
+h3.text-center {
+  color: #4c6ef5; /* Color llamativo para el título */
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+}
+
+/* Entradas del formulario */
+.form-control {
+  border-radius: 10px;
+  background-color: #f7f7f7; /* Fondo claro para inputs */
+  border: 2px solid #e0e0e0;
+  font-size: 1.1rem;
+}
+
+.form-control:focus {
+  border-color: #4c6ef5; /* Borde azul cuando el input está enfocado */
+  box-shadow: 0 0 5px rgba(76, 110, 245, 0.4); /* Efecto sutil al enfocar */
+}
+
+/* Botón de inicio de sesión */
+.btn-primary {
+  background-color: #4c6ef5; /* Fondo azul para el botón */
+  border-radius: 50px;
+  font-size: 1.2rem;
+  padding: 12px;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #2575fc; /* Cambio de color en hover */
+  transform: scale(1.05); /* Efecto de escala al pasar el mouse */
+}
+
+/* Enlaces */
+.text-muted {
+  color: #6c757d !important;
+}
+
+.text-muted:hover {
+  color: #4c6ef5 !important;
+}
+
+.hover-primary:hover {
+  color: #4c6ef5; /* Color azul en hover para los enlaces */
+}
+
+.font-weight-bold {
+  font-weight: 700; /* Resaltar los enlaces */
+}
+
+/* Espaciado entre los enlaces */
+.text-center .mx-2 {
+  margin: 0 10px;
+}
+.textos{
+  color: white;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .table {
+    font-size: 0.9rem; /* Reducir el tamaño de la fuente en pantallas pequeñas */
+  }
+}

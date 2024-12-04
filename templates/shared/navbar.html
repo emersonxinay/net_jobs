@@ -1,12 +1,17 @@
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="navbar">
   <div class="container">
-    <a class="navbar-brand" href="{{ url_for('home') }}">Red Joven</a>
+    <a class="navbar-brand" href="{{ url_for('home') }}">
+      <img
+        class="navbar-logo"
+        src="{{ url_for('static', filename='img/red_peguita_blanco.png') }}"
+      />
+    </a>
     <button
       class="navbar-toggler"
       type="button"
-      data-toggle="collapse"
-      data-target="#navbarNav"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
       aria-controls="navbarNav"
       aria-expanded="false"
       aria-label="Toggle navigation"
@@ -14,43 +19,60 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ml-auto">
+      <ul class="navbar-nav ms-auto">
         <!-- Si el usuario está logueado -->
         {% if current_user.is_authenticated %}
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+          <a class="nav-link" href="{{ url_for('dashboard') }}">
+            <i class="bi bi-house-door"></i> Dashboard
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('new_job') }}"
-            >Publicar Empleo</a
-          >
+          <a class="nav-link" href="{{ url_for('new_job') }}">
+            <i class="bi bi-file-earmark-plus"></i> Publicar Empleo
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('conversations') }}"
-            >Mis Conversaciones</a
-          >
+          <a class="nav-link" href="{{ url_for('conversations') }}">
+            <i class="bi bi-chat-dots"></i> Mis Conversaciones
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('profile') }}"
-            >Hola, {{ current_user.username }}</a
-          >
+          <a class="nav-link" href="{{ url_for('profile') }}">
+            <i class="bi bi-person-circle"></i> Hola, {{ current_user.username
+            }}
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('logout') }}">Salir</a>
+          <a class="nav-link" href="{{ url_for('logout') }}">
+            <i class="bi bi-box-arrow-right"></i> Salir
+          </a>
         </li>
         {% else %}
         <!-- Si el usuario no está logueado -->
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('home') }}">Empleos Rapidos</a>
+          <a class="nav-link" href="{{ url_for('home') }}">
+            <i class="bi bi-briefcase"></i> Empleos Rápidos
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('login') }}">Iniciar Sesión</a>
+          <a class="nav-link" href="{{ url_for('login') }}">
+            <i class="bi bi-person-lock"></i> Iniciar Sesión
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('register') }}">Registrarse</a>
+          <a class="nav-link" href="{{ url_for('register') }}">
+            <i class="bi bi-person-add"></i> Registrarse
+          </a>
         </li>
         {% endif %}
       </ul>
     </div>
   </div>
 </nav>
+
+<!-- Asegúrate de incluir el CDN de Bootstrap Icons -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+  rel="stylesheet"
+/>

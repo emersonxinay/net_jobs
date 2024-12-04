@@ -1,0 +1,86 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+      <!-- Encabezado de perfil con fondo degradado -->
+      <div
+        class="card shadow-lg"
+        style="background: linear-gradient(to right, #00c6ff, #0072ff); color: white;"
+      >
+        <div class="card-body text-center">
+          <h2 class="card-title">
+            Bienvenido a tu perfil, {{ user.username }}
+          </h2>
+        </div>
+      </div>
+
+      <!-- Mensaje de éxito (si existe) -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="alert-container mt-3">
+        <ul class="list-unstyled">
+          {% for category, message in messages %}
+          <li
+            class="alert alert-{{ category }} alert-dismissible fade show"
+            role="alert"
+          >
+            {{ message }}
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %} {% endwith %}
+
+      <!-- Formulario de edición del perfil -->
+      <form method="POST">
+        <div class="card shadow-sm mt-4">
+          <div class="card-body">
+            <div class="mb-3">
+              <label for="email" class="form-label">Correo electrónico</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value="{{ user.email }}"
+                class="form-control"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="username" class="form-label">Nombre de usuario</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value="{{ user.username }}"
+                class="form-control"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="phone_number" class="form-label">Teléfono</label>
+              <input
+                type="text"
+                id="phone_number"
+                name="phone_number"
+                value="{{ user.phone_number }}"
+                class="form-control"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-lg btn-primary w-100">
+              Actualizar
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

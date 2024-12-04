@@ -8,6 +8,13 @@ from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
 from flask_mail import Mail, Message
 import secrets
+# rutas para perfil de usuario
+
+
+# fin para ruta de perfil de usuario
+
+# actualizar usuario
+
 
 # Configuración de la aplicación
 
@@ -28,6 +35,7 @@ app.config['SECRET_KEY'] = 'tu_secreto'
 socketio = SocketIO(app)
 app.config.from_object(Config)
 
+
 # Inicialización de extensiones
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
@@ -44,10 +52,13 @@ def get_db_connection():
 
 
 class User(UserMixin):
-    def __init__(self, id, username, password):
+    def __init__(self, id, username, password, email=None, phone_number=None):
         self.id = id
         self.username = username
         self.password = password
+        self.email = email  # Añadimos el atributo email
+        self.phone_number = phone_number  # Añadimos el atributo phone_number
+
 
 # Cargar usuario
 
@@ -56,12 +67,21 @@ class User(UserMixin):
 def load_user(user_id):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    cur.execute(
+        "SELECT id, username, password, email, phone_number FROM users WHERE id = %s", (user_id,))
     user = cur.fetchone()
     conn.close()
     if user:
-        return User(id=user['id'], username=user['username'], password=user['password'])
+        return User(
+            id=user['id'],
+            username=user['username'],
+            password=user['password'],
+            email=user['email'],  # Cargar el email
+            phone_number=user['phone_number']  # Cargar el teléfono
+        )
     return None
+
+
 # ruta raiz dasboard publico
 
 
@@ -133,9 +153,41 @@ def logout():
 # perfil de usuario
 
 
-@app.route('/profile')
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
 def profile():
-    return render_template('profile.html')
+    # Conexión a la base de datos
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    # Consulta para obtener los datos del usuario
+    cur.execute(
+        "SELECT email, username, phone_number FROM users WHERE id = %s", (current_user.id,))
+    user_data = cur.fetchone()
+
+    # Si el formulario ha sido enviado con método POST, actualizamos los datos
+    if request.method == 'POST':
+        email = request.form['email']
+        username = request.form['username']
+        phone_number = request.form['phone_number']
+
+        # Actualizamos los datos en la base de datos
+        cur.execute("""
+            UPDATE users 
+            SET email = %s, username = %s, phone_number = %s 
+            WHERE id = %s
+        """, (email, username, phone_number, current_user.id))
+
+        conn.commit()  # Confirmamos los cambios
+        flash('Tus datos han sido actualizados exitosamente.', 'success')
+        # Redirigimos para evitar reenvío del formulario
+        return redirect(url_for('profile'))
+
+    conn.close()
+
+    # Pasar los datos del usuario a la plantilla
+    return render_template('profile.html', user=user_data)
+
 
 # ruta dashboard publico
 
@@ -168,8 +220,8 @@ def new_job():
         exact_date = request.form['exact_date']
         start_time = request.form['start_time']
         end_time = request.form['end_time']
-        # Obtener el número de contacto
         contact_number = request.form['contact_number']
+        price = request.form['price']  # Obtenemos el precio
 
         # Validación para asegurarse de que la hora de inicio sea anterior a la hora de finalización
         if start_time >= end_time:
@@ -182,9 +234,9 @@ def new_job():
             conn = get_db_connection()
             cur = conn.cursor()
             cur.execute("""
-                INSERT INTO jobs (title, description, urgent, locationn, exact_date, start_time, end_time, user_id, contact_number)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (title, description, urgent, locationn, exact_date, start_time, end_time, current_user.id, contact_number))
+                INSERT INTO jobs (title, description, urgent, locationn, exact_date, start_time, end_time, user_id, contact_number, price)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (title, description, urgent, locationn, exact_date, start_time, end_time, current_user.id, contact_number, price))
             conn.commit()
             cur.close()
             conn.close()
@@ -210,6 +262,72 @@ def get_jobs():
     cur.close()
     conn.close()
     return jobs
+
+
+# editar trabajo
+@app.route('/edit_job/<int:job_id>', methods=['GET', 'POST'])
+@login_required
+def edit_job(job_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # Obtener el trabajo por su ID
+    cur.execute('SELECT * FROM jobs WHERE id = %s', (job_id,))
+    job = cur.fetchone()
+
+    if job is None:
+        flash('Trabajo no encontrado.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    # Verificar que el trabajo pertenece al usuario actual
+    if job[5] != current_user.id:  # Verifica que el campo `user_id` coincide
+        flash('No tienes permiso para editar este trabajo.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    # Si el formulario se envió
+    if request.method == 'POST':
+        # Recoger los datos del formulario
+        title = request.form['title']
+        description = request.form['description']
+        urgent = 'urgent' in request.form  # Checkbox
+        locationn = request.form['locationn']
+        exact_date = request.form['exact_date']
+        start_time = request.form['start_time']
+        end_time = request.form['end_time']
+        contact_number = request.form['contact_number']
+        price = request.form['price']
+
+        # Actualizar los datos en la base de datos
+        cur.execute('''
+            UPDATE jobs 
+            SET title = %s, description = %s, urgent = %s, locationn = %s, exact_date = %s, 
+                start_time = %s, end_time = %s, contact_number = %s, price = %s
+            WHERE id = %s
+        ''', (title, description, urgent, locationn, exact_date, start_time, end_time, contact_number, price, job_id))
+
+        conn.commit()
+
+        flash('Trabajo actualizado con éxito.', 'success')
+        return redirect(url_for('dashboard'))
+
+    # Convertir los datos del trabajo en un diccionario para usar en el template
+    job_dict = {
+        'title': job[1],
+        'description': job[2],
+        'urgent': job[3],
+        'locationn': job[6],
+        'exact_date': job[7],
+        'start_time': job[8],
+        'end_time': job[9],
+        'contact_number': job[10],
+        'price': job[11],
+    }
+
+    # Renderizar el template con los datos del trabajo
+    return render_template('edit_job.html', job=job_dict)
+
+
+# fin de editar trabajo
 
 
 @app.route('/send_message/<int:receiver_id>/<int:job_id>', methods=['POST'])
@@ -363,7 +481,11 @@ def conversations():
                 other_user.id AS other_user_id, 
                 other_user.username, 
                 j.title AS job_title, 
-                j.id AS job_id
+                j.exact_date AS job_date, 
+                j.price AS job_payment, 
+                j.id AS job_id, 
+                EXTRACT(EPOCH FROM (j.end_time - j.start_time)) / 3600 AS job_hours,
+                m.timestamp AS last_message_time
             FROM messages m
             INNER JOIN users other_user 
                 ON (m.sender_id = other_user.id AND m.receiver_id = %s) 
@@ -378,10 +500,13 @@ def conversations():
         cur.close()
         conn.close()
 
+        # Retornar el template con las conversaciones ordenadas
         return render_template('conversations.html', conversations=conversations)
+
     except Exception as e:
         flash(f"Error al cargar las conversaciones: {e}", "danger")
         return redirect(url_for('dashboard'))
+
 
 # fin de conversations
 
