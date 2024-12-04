@@ -86,8 +86,18 @@ b'Para restablecer tu password, haz clic en el siguiente enlace: http://127.0.0.
 ```
 y copiar o hacer click en el enlace para restablecer la contraseña
 
+- img demo
+Dashboard
+<img src="./static/img/dashboard.png">"
 
+Perfil
+<img src="./static/img/perfil.png">"
 
+conversaciones
+<img src="./static/img/conversaciones.png>"
+
+Nuevo Empleo
+<img src="./static/img/nuevo_empleo.png">"
 
 
 
