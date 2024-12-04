@@ -88,16 +88,16 @@ y copiar o hacer click en el enlace para restablecer la contraseña
 
 - img demo
 Dashboard
-<img src="./static/img/dashboard.png">"
+<img src="./static/img/dashboard.png">
 
 Perfil
-<img src="./static/img/perfil.png">"
+<img src="./static/img/perfil.png">
 
 conversaciones
 <img src="./static/img/conversaciones.png>"
 
 Nuevo Empleo
-<img src="./static/img/nuevo_empleo.png">"
+<img src="./static/img/nuevo_empleo.png">
 
 
 
