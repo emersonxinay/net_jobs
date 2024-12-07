@@ -60,19 +60,38 @@
 
 <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 <script>
-  const socket = io.connect('http://' + document.domain + ':' + location.port);
+  const socket = io.connect('http://' + document.domain + ':' + location.port, {
+    transports: ['websocket'],
+    upgrade: false
+  });
+  const messagesDiv = document.querySelector('.messages');
 
-  document.getElementById('message-form').addEventListener('submit', function (e) {
-    e.preventDefault(); // Evita que se recargue la página
+  // Función para agregar mensaje al DOM
+  function addMessageToChat(data) {
+    const isCurrentUser = data.sender_id === {{ current_user.id }};
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isCurrentUser ? 'sent' : 'received'} p-2 mb-2`;
+    messageDiv.style.backgroundColor = isCurrentUser ? '#d1e7dd' : '#f8d7da';
+    messageDiv.style.borderRadius = '8px';
+    messageDiv.style.textAlign = isCurrentUser ? 'right' : 'left';
+
+    messageDiv.innerHTML = `
+      <strong>${isCurrentUser ? 'Tú' : '{{ chat_user.username }}'}</strong>: ${data.message}
+      <br>
+      <small class="text-muted">${data.timestamp}</small>
+    `;
+
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  document.getElementById('message-form').addEventListener('submit', function(e) {
+    e.preventDefault();
 
     const messageInput = document.getElementById('message');
-    const message = messageInput.value;
+    const message = messageInput.value.trim();
 
-    // Verificar si el mensaje y job_id están presentes
-    if (!message || !{{ request.view_args['job_id'] }}) {
-      alert("Por favor, asegúrate de que el mensaje y el empleo estén definidos.");
-      return;
-    }
+    if (!message) return;
 
     const data = {
       sender_id: {{ current_user.id }},
@@ -81,30 +100,36 @@
       message: message
     };
 
-    // Envía el mensaje al servidor usando WebSockets
     socket.emit('send_message', data);
-
-    // Limpia el campo del mensaje
     messageInput.value = '';
   });
 
-  // Escucha mensajes en tiempo real
-  socket.on('new_message', function (data) {
-    const messagesDiv = document.querySelector('.messages');
-
-    // Crea un nuevo elemento para mostrar el mensaje recibido
-    const newMessageDiv = document.createElement('div');
-    newMessageDiv.classList.add('message');
-    newMessageDiv.classList.add(data.sender_id === {{ current_user.id }} ? 'sent' : 'received');
-
-    newMessageDiv.innerHTML = `
-      <strong>${data.sender_id === {{ current_user.id }} ? 'Tú' : '{{ chat_user.username }}'}:</strong> ${data.message}
-      <br />
-      <small class="text-muted">${data.timestamp}</small>
-    `;
-
-    messagesDiv.appendChild(newMessageDiv);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight; // Desplaza hacia el final
+  // Agregar logs para eventos de conexión
+  socket.on('connect', function() {
+    console.log('Conectado al servidor de WebSocket');
+    console.log('ID de Socket:', socket.id);
+    console.log('Usuario actual:', {{ current_user.id }});
   });
+
+  socket.on('connect_error', (error) => {
+    console.error('Error de conexión:', error);
+  });
+
+  socket.on('disconnect', (reason) => {
+    console.log('Desconectado:', reason);
+  });
+
+  socket.on('new_message', function(data) {
+    console.log('Mensaje recibido:', data);
+    console.log('Usuario actual:', {{ current_user.id }});
+    console.log('Remitente:', data.sender_id);
+    console.log('Destinatario:', data.receiver_id);
+    addMessageToChat(data);
+  });
+
+  // Scroll al fondo al cargar
+  window.onload = function() {
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  };
 </script>
 {% endblock %}

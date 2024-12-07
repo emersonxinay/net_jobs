@@ -12,7 +12,8 @@
           <th>Fecha del Trabajo</th>
           <th>Pago</th>
           <th>Horas</th>
-          <th>Ver Conversación</th>
+          <th>Último mensaje</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -20,31 +21,31 @@
         reverse=True) %}
         <tr>
           <td>{{ conversation.username }}</td>
+          <td>{{ conversation.job_title or '(Sin puesto de trabajo)' }}</td>
+          <td>{{ conversation.job_date or '(Fecha no especificada)' }}</td>
           <td>
-            {% if conversation.job_title %} {{ conversation.job_title }} {% else
-            %} (Sin puesto de trabajo) {% endif %}
+            {{ '${:.2f}'.format(conversation.job_payment) if
+            conversation.job_payment else '(No especificado)' }}
           </td>
           <td>
-            {% if conversation.job_date %} {{ conversation.job_date }} {% else
-            %} (Fecha no especificada) {% endif %}
+            {{ '{:.2f} horas'.format(conversation.job_hours) if
+            conversation.job_hours else '(No especificado)' }}
           </td>
           <td>
-            {% if conversation.job_payment %} ${{
-            '%.2f'|format(conversation.job_payment) }} {% else %} (Pago no
-            especificado) {% endif %}
+            {{ conversation.last_message_time.strftime('%Y-%m-%d %H:%M') if
+            conversation.last_message_time }}
           </td>
           <td>
-            {% if conversation.job_hours %} {{
-            '%.2f'|format(conversation.job_hours) }} horas {% else %} (Duración
-            no especificada) {% endif %}
-          </td>
-          <td>
+            {% if conversation.job_id %}
             <a
               href="{{ url_for('chat', user_id=conversation.other_user_id, job_id=conversation.job_id) }}"
               class="btn btn-primary btn-sm"
             >
-              Ver Conversación
+              Ver Chat
             </a>
+            {% else %}
+            <span class="text-muted">Trabajo no disponible</span>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}
@@ -52,7 +53,13 @@
     </table>
   </div>
   {% else %}
-  <p class="text-muted text-center">No tienes conversaciones aún.</p>
+  <div class="alert alert-info text-center">No tienes conversaciones aún.</div>
   {% endif %}
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"
+      >Volver al Dashboard</a
+    >
+  </div>
 </div>
 {% endblock %}

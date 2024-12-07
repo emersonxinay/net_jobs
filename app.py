@@ -32,7 +32,8 @@ class Config:
 # Inicialización de Flask
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tu_secreto'
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*",
+                    logger=True, engineio_logger=True)
 app.config.from_object(Config)
 
 
@@ -333,6 +334,7 @@ def edit_job(job_id):
 @app.route('/send_message/<int:receiver_id>/<int:job_id>', methods=['POST'])
 @login_required
 def send_message(receiver_id, job_id):
+
     message = request.form['message']
 
     if not message.strip():
@@ -373,85 +375,128 @@ def chat(user_id, job_id):
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-        # Obtener la información del usuario con el que se está chateando y su empleo
+        # Verificar que el trabajo existe
         cur.execute("""
-            SELECT u.id, u.username, j.title AS job_title
-            FROM users u
-            LEFT JOIN jobs j ON u.id = j.user_id
-            WHERE u.id = %s AND j.id = %s
-        """, (user_id, job_id))
+            SELECT j.*, u.username as job_owner_username
+            FROM jobs j 
+            JOIN users u ON j.user_id = u.id 
+            WHERE j.id = %s
+        """, (job_id,))
+        job = cur.fetchone()
+
+        if not job:
+            flash("El trabajo no existe o ha sido eliminado.", "danger")
+            return redirect(url_for('dashboard'))
+
+        # Obtener la información del usuario con quien se chatea
+        cur.execute("""
+            SELECT id, username, phone_number 
+            FROM users 
+            WHERE id = %s
+        """, (user_id,))
         chat_user = cur.fetchone()
 
         if not chat_user:
-            flash("Usuario o trabajo no encontrado.", "danger")
+            flash("Usuario no encontrado.", "danger")
             return redirect(url_for('dashboard'))
 
-        # Obtener todos los mensajes entre el usuario actual y el chat_user para ese trabajo
+        # Obtener mensajes existentes
         cur.execute("""
-            SELECT * FROM messages
-            WHERE (sender_id = %s AND receiver_id = %s AND job_id = %s)
-               OR (sender_id = %s AND receiver_id = %s AND job_id = %s)
-            ORDER BY timestamp ASC
-        """, (current_user.id, user_id, job_id, user_id, current_user.id, job_id))
-
+            SELECT m.*, 
+                   sender.username as sender_username,
+                   receiver.username as receiver_username
+            FROM messages m
+            JOIN users sender ON m.sender_id = sender.id
+            JOIN users receiver ON m.receiver_id = receiver.id
+            WHERE m.job_id = %s AND (
+                (m.sender_id = %s AND m.receiver_id = %s) OR 
+                (m.sender_id = %s AND m.receiver_id = %s)
+            )
+            ORDER BY m.timestamp ASC
+        """, (job_id, current_user.id, user_id, user_id, current_user.id))
         messages = cur.fetchall()
+
+        # Agregar información del trabajo al chat_user
+        chat_user['job_title'] = job['title']
+
         cur.close()
         conn.close()
 
-        return render_template('chat.html', chat_user=chat_user, messages=messages)
+        # Lógica de permisos simplificada
+        can_chat = (current_user.id == job['user_id'] or  # Es el dueño del trabajo
+                    current_user.id == user_id or          # Es el interesado
+                    # Está chateando con el dueño
+                    user_id == job['user_id'])
+
+        if not can_chat:
+            flash("No tienes permiso para acceder a esta conversación.", "danger")
+            return redirect(url_for('dashboard'))
+
+        return render_template('chat.html',
+                               chat_user=chat_user,
+                               messages=messages,
+                               job=job,
+                               is_job_owner=(current_user.id == job['user_id']))
+
     except Exception as e:
+        print(f"Error en chat: {e}")  # Para debugging
         flash(f"Error al cargar la conversación: {e}", "danger")
         return redirect(url_for('dashboard'))
 
 
+@socketio.on('connect')
+def handle_connect():
+    if current_user.is_authenticated:
+        # Crear una sala única para el usuario
+        room = str(current_user.id)
+        join_room(room)
+        print(f"Usuario {current_user.id} conectado y unido a la sala {room}")
+
+
 @socketio.on('send_message')
 def handle_send_message(data):
-    print(f"Recibido mensaje: {data}")  # Para depurar
-
     sender_id = data['sender_id']
     receiver_id = data['receiver_id']
     message = data['message']
-    # Asegúrate de que el job_id se pase desde el frontend
     job_id = data.get('job_id')
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    timestamp = datetime.utcnow()
 
-    # Verificar si job_id es válido
-    if not job_id:
-        print("Error: El job_id es necesario para enviar el mensaje.")
-        return  # Si no hay job_id, no guardamos el mensaje
+    # Log adicional
+    print(
+        f"Procesando mensaje - De: {sender_id} Para: {receiver_id} Mensaje: {message}")
 
-    # Guardar el mensaje en la base de datos
     try:
+        # Guardar mensaje en la base de datos
         conn = get_db_connection()
         cur = conn.cursor()
-
-        # Inserta el mensaje con job_id en la base de datos
         cur.execute("""
             INSERT INTO messages (sender_id, receiver_id, job_id, message, timestamp)
             VALUES (%s, %s, %s, %s, %s)
+            RETURNING timestamp
         """, (sender_id, receiver_id, job_id, message, timestamp))
 
+        timestamp = cur.fetchone()[0]
         conn.commit()
         cur.close()
         conn.close()
 
-        # Emitir el mensaje a la sala correspondiente
-        emit('new_message', {
+        # Emitir el mensaje tanto al remitente como al destinatario
+        message_data = {
             'sender_id': sender_id,
             'receiver_id': receiver_id,
-            'job_id': job_id,  # Incluir job_id en el mensaje emitido
+            'job_id': job_id,
             'message': message,
-            'timestamp': timestamp
-        }, room=str(receiver_id))  # Enviar solo al usuario receptor
+            'timestamp': timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+        print(f"Emitiendo mensaje a sala {sender_id}")  # Log adicional
+        emit('new_message', message_data, room=str(sender_id))
+
+        print(f"Emitiendo mensaje a sala {receiver_id}")  # Log adicional
+        emit('new_message', message_data, room=str(receiver_id))
+
     except Exception as e:
-        print(f"Error al guardar el mensaje: {e}")
-
-
-@socketio.on('connect')
-def handle_connect():
-    """Se ejecuta cuando un cliente se conecta"""
-    print(f"Cliente {current_user.id} conectado")
-    join_room(current_user.id)
+        print(f"Error al procesar el mensaje: {e}")
 
 
 @socketio.on('disconnect')
@@ -477,33 +522,50 @@ def conversations():
 
         # Recuperar todas las conversaciones con mensajes relacionados al usuario actual
         cur.execute("""
-            SELECT DISTINCT ON (other_user.id, j.id) 
-                other_user.id AS other_user_id, 
-                other_user.username, 
-                j.title AS job_title, 
-                j.exact_date AS job_date, 
-                j.price AS job_payment, 
-                j.id AS job_id, 
+            WITH LastMessages AS (
+                SELECT 
+                    DISTINCT ON (
+                        CASE 
+                            WHEN sender_id = %s THEN receiver_id 
+                            ELSE sender_id 
+                        END,
+                        job_id
+                    )
+                    CASE 
+                        WHEN sender_id = %s THEN receiver_id 
+                        ELSE sender_id 
+                    END as other_user_id,
+                    job_id,
+                    timestamp as last_message_time
+                FROM messages 
+                WHERE sender_id = %s OR receiver_id = %s
+                ORDER BY other_user_id, job_id, timestamp DESC
+            )
+            SELECT 
+                lm.other_user_id,
+                u.username,
+                j.title AS job_title,
+                j.exact_date AS job_date,
+                j.price AS job_payment,
+                j.id AS job_id,
                 EXTRACT(EPOCH FROM (j.end_time - j.start_time)) / 3600 AS job_hours,
-                m.timestamp AS last_message_time
-            FROM messages m
-            INNER JOIN users other_user 
-                ON (m.sender_id = other_user.id AND m.receiver_id = %s) 
-                OR (m.receiver_id = other_user.id AND m.sender_id = %s)
-            LEFT JOIN jobs j 
-                ON m.job_id = j.id
-            ORDER BY other_user.id, j.id, m.timestamp DESC
-        """, (current_user.id, current_user.id))
+                lm.last_message_time
+            FROM LastMessages lm
+            JOIN users u ON u.id = lm.other_user_id
+            JOIN jobs j ON j.id = lm.job_id
+            WHERE j.id IS NOT NULL
+            ORDER BY lm.last_message_time DESC
+        """, (current_user.id, current_user.id, current_user.id, current_user.id))
 
         conversations = cur.fetchall()
 
         cur.close()
         conn.close()
 
-        # Retornar el template con las conversaciones ordenadas
         return render_template('conversations.html', conversations=conversations)
 
     except Exception as e:
+        print(f"Error en conversations: {e}")
         flash(f"Error al cargar las conversaciones: {e}", "danger")
         return redirect(url_for('dashboard'))
 
@@ -584,4 +646,4 @@ def reset_password(token):
 
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=True, allow_unsafe_werkzeug=True)
