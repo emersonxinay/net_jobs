@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T&D - Perfil de Usuario</title>
+    <link rel="stylesheet" href="templates/assets/css/perfil.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="publicaciones.html" class="nav-button">Publicaciones</a>
+            <a href="formulario.html" class="nav-button">Publicar</a>
+            <a href="perfil.html" class="nav-button">Perfil</a>
+            <a href="chats.html" class="nav-button">Chats</a>
+            <a href="#" class="nav-button">Ayuda</a>
+            <a href="contacto.html" class="nav-button">Contacto</a>
+            <a href="index.html" class="nav-button">Cerrar sesión</a>
+        </nav>
+        <img src="templates/assets/img/pixelcut-export.png" alt="T&D Logo" class="logo">
+    </header>
+
+    <main>
+        <div class="profile-container">
+            <div class="profile-header">
+                <div class="profile-image-container">
+                    <img src="profile-placeholder.png" alt="Foto de perfil" id="profile-image">
+                    <label for="profile-image-upload" class="edit-image-button">Editar</label>
+                    <input type="file" id="profile-image-upload" accept="image/*" style="display: none;">
+                </div>
+                <div class="profile-info">
+                    <h1 id="user-name" contenteditable="true">Nombre y apellido</h1>
+                    <p id="user-location" contenteditable="true">Ciudad/país</p>
+                    <div class="profile-rating">
+                        <h2>Puntuación:</h2>
+                        <div class="stars">
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                        </div>
+                    </div>
+                    <button class="report-button">Reportar</button>
+                </div>
+            </div>
+            <div class="about-me">
+                <h2>Sobre mí</h2>
+                <p id="about-text" contenteditable="true">Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptatem nam illum voluptates sit unde eum corporis fugit aut</p>
+            </div>
+        </div>
+
+        <div class="jobs-container">
+            <div class="jobs-section">
+                <h2>Trabajos más realizados</h2>
+                <ul id="completed-jobs">
+                    <li contenteditable="true">Trabajo 1</li>
+                    <li contenteditable="true">Trabajo 2</li>
+                    <li contenteditable="true">Trabajo 3</li>
+                </ul>
+            </div>
+            <div class="jobs-section">
+                <h2>Los más pedidos</h2>
+                <ul id="requested-jobs">
+                    <li contenteditable="true">Trabajo 1</li>
+                    <li contenteditable="true">Trabajo 2</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="opinions-container">
+            <h2>Opiniones</h2>
+            <div class="opinion">
+                <img src="user-placeholder.png" alt="Usuario" class="opinion-user-image">
+                <div class="opinion-content">
+                    <h3>Persona</h3>
+                    <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit</p>
+                    <div class="opinion-rating">
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

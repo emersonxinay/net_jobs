@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T&D - Chat</title>
+    <link rel="stylesheet" href="templates/assets/css/chats.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <img src="templates/assets/img/pixelcut-export.png" alt="T&D Logo" class="logo">
+        <nav>
+            <a href="publicaciones.html" class="nav-button">Publicaciones</a>
+            <a href="formulario.html" class="nav-button">Publicar</a>
+            <a href="perfil.html" class="nav-button">Perfil</a>
+            <a href="chats.html" class="nav-button">Chats</a>
+            <a href="#" class="nav-button">Ayuda</a>
+            <a href="contacto.html" class="nav-button">Contacto</a>
+            <a href="index.html" class="nav-button">Cerrar sesión</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="chat-container">
+            <div class="chat-tabs">
+                <button class="tab-button active" data-tab="personas">Buscar</button>
+                <button class="tab-button" data-tab="grupos">Ofrecer</button>
+            </div>
+            <div class="chat-content">
+                <div class="contact-list">
+                    <div class="search-container">
+                        <input type="text" placeholder="Buscar por trabajo o persona" class="search-input">
+                        <i class="search-icon">🔍</i>
+                    </div>
+                    <ul>
+                        <li class="contact active">
+                            <img src="avatar-placeholder.png" alt="Gabriel Garcia" class="contact-avatar">
+                            <div class="contact-info">
+                                <h3>Gabriel Garcia</h3>
+                                <p>paseo mascotas</p>
+                            </div>
+                        </li>
+                        <li class="contact">
+                            <img src="avatar-placeholder.png" alt="Mario" class="contact-avatar">
+                            <div class="contact-info">
+                                <h3>Mario</h3>
+                                <p>Fontanero</p>
+                            </div>
+                        </li>
+                        <li class="contact">
+                            <img src="avatar-placeholder.png" alt="Matias" class="contact-avatar">
+                            <div class="contact-info">
+                                <h3>Matias</h3>
+                                <p>Remplazo de guardia</p>
+                            </div>
+                        </li>
+                        <li class="contact">
+                            <img src="avatar-placeholder.png" alt="Miguel" class="contact-avatar">
+                            <div class="contact-info">
+                                <h3>Miguel</h3>
+                                <p>Ayuda con mudanza</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="chat-window">
+                    <div class="chat-header">
+                        <h2>Gabriel Garcia</h2>
+                        <div class="chat-actions">
+                            <button class="action-button">📞</button>
+                            <button class="action-button">📹</button>
+                        </div>
+                    </div>
+                    <div class="chat-messages">
+                        <div class="message sent">
+                            <p>Hola queria solicitar el puesto para el paseo de tu mascota</p>
+                        </div>
+                        <div class="message received">
+                            <p>Hola si la fecha que sale indicada ahi este es mi perro</p>
+                        </div>
+                        <div class="message received">
+                            <img src="dog-placeholder.jpg" alt="Dog image" class="chat-image">
+                        </div>
+                        <div class="message sent">
+                            <p>Perfecto entonces el lunes a las 7</p>
+                        </div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" placeholder="Escribe un mensaje..." class="message-input">
+                        <button class="send-button">📤</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
