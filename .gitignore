@@ -2,6 +2,7 @@
 /venv/
 .env
 .env1
+.env.prod
 *.pyc
 db.sqlite3
 .vercel
