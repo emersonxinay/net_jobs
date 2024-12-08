@@ -26,13 +26,15 @@ load_dotenv()  # Carga las variables de entorno
 
 
 class Config:
-    SECRET_KEY = 'tu_secreto'
-    MAIL_SERVER = 'localhost'  # Servidor local para pruebas
-    MAIL_PORT = 8025           # Puerto local para el servidor SMTP de pruebas
-    MAIL_USE_TLS = False       # No es necesario TLS en pruebas locales
-    MAIL_USERNAME = 'tu_correo@example.com'  # Remitente por defecto
-    MAIL_PASSWORD = None
-    MAIL_DEFAULT_SENDER = 'tu_correo@example.com'  # Agrega esto
+    # Mejor usar variable de entorno
+    SECRET_KEY = os.getenv('SECRET_KEY', 'tu_secreto')
+    MAIL_SERVER = os.getenv('MAIL_SERVER', 'localhost')
+    MAIL_PORT = int(os.getenv('MAIL_PORT', 8025))
+    MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'False').lower() == 'true'
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME', 'tu_correo@example.com')
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.getenv(
+        'MAIL_DEFAULT_SENDER', 'tu_correo@example.com')
 
 
 # Inicialización de Flask
@@ -51,14 +53,18 @@ mail = Mail(app)
 
 
 def get_db_connection():
-    conn = psycopg2.connect(
-        dbname=os.getenv('POSTGRES_DB'),
-        user=os.getenv('POSTGRES_USER'),
-        password=os.getenv('POSTGRES_PASSWORD'),
-        host=os.getenv('POSTGRES_HOST'),
-        port=os.getenv('POSTGRES_PORT')
-    )
-    return conn
+    try:
+        conn = psycopg2.connect(
+            dbname=os.getenv('POSTGRES_DB'),
+            user=os.getenv('POSTGRES_USER'),
+            password=os.getenv('POSTGRES_PASSWORD'),
+            host=os.getenv('POSTGRES_HOST'),
+            port=os.getenv('POSTGRES_PORT')
+        )
+        return conn
+    except psycopg2.Error as e:
+        print(f"Error conectando a la base de datos: {e}")
+        raise
 
 # Modelo de Usuario
 
@@ -322,25 +328,31 @@ def dashboard():
 @login_required
 def new_job():
     if request.method == 'POST':
-        # Obtener los datos del formulario
-        title = request.form['title']
-        description = request.form['description']
-        urgent = 'urgent' in request.form
-        locationn = request.form['locationn']
-        exact_date = request.form['exact_date']
-        start_time = request.form['start_time']
-        end_time = request.form['end_time']
-        contact_number = request.form['contact_number']
-        price = request.form['price']  # Obtenemos el precio
-
-        # Validación para asegurarse de que la hora de inicio sea anterior a la hora de finalización
-        if start_time >= end_time:
-            flash(
-                "La hora de inicio debe ser anterior a la hora de finalización.", "danger")
-            return redirect(url_for('new_job'))
-
-        # Insertar el nuevo trabajo en la base de datos
         try:
+            # Validación de datos
+            if not all([request.form['title'], request.form['description'],
+                       request.form['locationn'], request.form['exact_date']]):
+                flash("Todos los campos obligatorios deben estar completos.", "danger")
+                return redirect(url_for('new_job'))
+
+            # Obtener los datos del formulario
+            title = request.form['title']
+            description = request.form['description']
+            urgent = 'urgent' in request.form
+            locationn = request.form['locationn']
+            exact_date = request.form['exact_date']
+            start_time = request.form['start_time']
+            end_time = request.form['end_time']
+            contact_number = request.form['contact_number']
+            price = request.form['price']  # Obtenemos el precio
+
+            # Validación para asegurarse de que la hora de inicio sea anterior a la hora de finalización
+            if start_time >= end_time:
+                flash(
+                    "La hora de inicio debe ser anterior a la hora de finalización.", "danger")
+                return redirect(url_for('new_job'))
+
+            # Insertar el nuevo trabajo en la base de datos
             conn = get_db_connection()
             cur = conn.cursor()
             cur.execute("""
@@ -353,7 +365,7 @@ def new_job():
             flash("Trabajo publicado exitosamente.", "success")
             return redirect(url_for('dashboard'))
         except Exception as e:
-            flash(f"Error al publicar el trabajo: {e}", "danger")
+            flash(f"Error al publicar el trabajo: {str(e)}", "danger")
             return redirect(url_for('new_job'))
 
     return render_template('new_job.html')
@@ -879,4 +891,10 @@ def utility_processor():
 
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, allow_unsafe_werkzeug=True)
+    port = int(os.getenv('PORT', 5000))
+    host = os.getenv('HOST', '0.0.0.0')
+
+    if os.getenv('FLASK_ENV') == 'development':
+        socketio.run(app, host=host, port=port, debug=True)
+    else:
+        socketio.run(app, host=host, port=port, debug=False)
