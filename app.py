@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from flask_mail import Mail, Message
 import secrets
 from math import ceil
+import os
 # rutas para perfil de usuario
 
 
@@ -47,7 +48,12 @@ mail = Mail(app)
 
 def get_db_connection():
     conn = psycopg2.connect(
-        dbname='red_jobs', user='postgres', password='emerson123', host='localhost')
+        dbname=os.environ.get('POSTGRES_DATABASE', 'postgres'),
+        user=os.environ.get('POSTGRES_USER', 'postgres'),
+        password=os.environ.get('POSTGRES_PASSWORD'),
+        host=os.environ.get('POSTGRES_HOST'),
+        port=os.environ.get('POSTGRES_PORT', '6543')
+    )
     return conn
 
 # Modelo de Usuario
