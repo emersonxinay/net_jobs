@@ -1,6 +1,7 @@
 /__pycache__/
 /venv/
 .env
+.env1
 *.pyc
 db.sqlite3
 .vercel
