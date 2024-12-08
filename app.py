@@ -10,6 +10,10 @@ from flask_mail import Mail, Message
 import secrets
 from math import ceil
 import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Carga las variables de entorno
+
 # rutas para perfil de usuario
 
 
@@ -48,11 +52,11 @@ mail = Mail(app)
 
 def get_db_connection():
     conn = psycopg2.connect(
-        dbname=os.environ.get('POSTGRES_DATABASE', 'postgres'),
-        user=os.environ.get('POSTGRES_USER', 'postgres'),
-        password=os.environ.get('POSTGRES_PASSWORD'),
-        host=os.environ.get('POSTGRES_HOST'),
-        port=os.environ.get('POSTGRES_PORT', '6543')
+        dbname=os.getenv('POSTGRES_DB'),
+        user=os.getenv('POSTGRES_USER'),
+        password=os.getenv('POSTGRES_PASSWORD'),
+        host=os.getenv('POSTGRES_HOST'),
+        port=os.getenv('POSTGRES_PORT')
     )
     return conn
 
