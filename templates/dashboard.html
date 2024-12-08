@@ -1,5 +1,4 @@
-{% extends "base.html" %} {% block title %}Dashboard{% endblock %} {% block
-content %}
+{% extends "base.html" %} {% block content %}
 <div class="container mt-5">
   <!-- Header Section -->
   <div class="dashboard-header">
@@ -47,10 +46,53 @@ content %}
       </div>
     </div>
   </div>
+  <!-- Filtros -->
+  <div class="filter-section">
+    <form id="searchForm" class="filter-form">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-6">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              name="search"
+              id="searchInput"
+              class="form-control"
+              placeholder="Buscar empleos..."
+              value="{{ search }}"
+              autocomplete="off"
+            />
+            <div class="search-spinner d-none">
+              <i class="fas fa-spinner fa-spin"></i>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-check form-switch urgent-filter">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="urgent"
+              id="urgentFilter"
+              {%
+              if
+              filter_urgent
+              %}checked{%
+              endif
+              %}
+            />
+            <label class="form-check-label" for="urgentFilter">
+              <i class="fas fa-bolt"></i> Solo urgentes
+            </label>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
 
-  <!-- Job Listings -->
+  <!-- Listado de empleos -->
   {% if jobs %}
-  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mt-4">
     {% for job in jobs %}
     <div class="col">
       <div class="job-card">
@@ -143,29 +185,6 @@ content %}
 
           <!-- Acciones -->
           <div class="action-box">
-            {% if job.user_id == current_user.id %}
-            <a
-              href="{{ url_for('edit_job', job_id=job.id) }}"
-              class="btn-action edit"
-            >
-              <i class="fas fa-edit"></i>
-              <span>Editar</span>
-            </a>
-            <form
-              action="{{ url_for('delete_job', job_id=job.id) }}"
-              method="POST"
-              class="d-inline"
-            >
-              <button
-                type="submit"
-                class="btn-action delete"
-                onclick="return confirm('¿Eliminar este empleo?')"
-              >
-                <i class="fas fa-trash-alt"></i>
-                <span>Eliminar</span>
-              </button>
-            </form>
-            {% else %}
             <a
               href="{{ url_for('chat', user_id=job.user_id, job_id=job.id) }}"
               class="btn-action chat"
@@ -173,13 +192,140 @@ content %}
               <i class="fas fa-comments"></i>
               <span>Contactar</span>
             </a>
-            {% endif %}
           </div>
         </div>
       </div>
     </div>
     {% endfor %}
   </div>
+
+  <!-- Paginación -->
+  {% if total_pages > 1 %}
+  <nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+      <li class="page-item {% if page == 1 %}disabled{% endif %}">
+        <a
+          class="page-link"
+          href="{{ url_for('home', page=page-1, search=search, urgent=filter_urgent) }}"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </a>
+      </li>
+      {% for p in range(1, total_pages + 1) %}
+      <li class="page-item {% if p == page %}active{% endif %}">
+        <a
+          class="page-link"
+          href="{{ url_for('home', page=p, search=search, urgent=filter_urgent) }}"
+          >{{ p }}</a
+        >
+      </li>
+      {% endfor %}
+      <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+        <a
+          class="page-link"
+          href="{{ url_for('home', page=page+1, search=search, urgent=filter_urgent) }}"
+        >
+          <i class="fas fa-chevron-right"></i>
+        </a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %} {% else %}
+  <div class="no-results">
+    <i class="fas fa-search"></i>
+    <h3>No se encontraron empleos</h3>
+    <p>Intenta con otros filtros de búsqueda</p>
+  </div>
   {% endif %}
 </div>
+{% endblock %} {% block extra_scripts %}
+<script>
+  let searchTimeout;
+  const searchForm = document.getElementById('searchForm');
+  const searchInput = document.getElementById('searchInput');
+  const urgentFilter = document.getElementById('urgentFilter');
+  const searchSpinner = document.querySelector('.search-spinner');
+
+  function performSearch() {
+    // Mostrar spinner
+    searchSpinner.classList.remove('d-none');
+
+    // Obtener los valores de búsqueda
+    const searchValue = searchInput.value;
+    const urgentValue = urgentFilter.checked;
+
+    // Construir la URL con los parámetros
+    const params = new URLSearchParams({
+      search: searchValue,
+      page: 1
+    });
+
+    if (urgentValue) {
+      params.append('urgent', 'on');
+    }
+
+    // Realizar la petición
+    fetch(`${window.location.pathname}?${params.toString()}`, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.text())
+    .then(html => {
+      // Actualizar solo el contenido necesario
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const newContent = doc.querySelector('.row.row-cols-1');
+      const pagination = doc.querySelector('.pagination');
+      const noResults = doc.querySelector('.no-results');
+
+      const currentContent = document.querySelector('.row.row-cols-1');
+      const currentPagination = document.querySelector('.pagination');
+      const currentNoResults = document.querySelector('.no-results');
+
+      if (newContent) {
+        if (currentContent) {
+          currentContent.replaceWith(newContent);
+        }
+        if (currentNoResults) {
+          currentNoResults.remove();
+        }
+      } else if (noResults) {
+        if (currentContent) {
+          currentContent.remove();
+        }
+        if (currentPagination) {
+          currentPagination.remove();
+        }
+        if (!currentNoResults) {
+          document.querySelector('.container').appendChild(noResults);
+        }
+      }
+
+      if (pagination) {
+        if (currentPagination) {
+          currentPagination.replaceWith(pagination);
+        } else {
+          document.querySelector('.container').appendChild(pagination);
+        }
+      }
+
+      // Actualizar la URL sin recargar la página
+      window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
+    })
+    .finally(() => {
+      // Ocultar spinner
+      searchSpinner.classList.add('d-none');
+    });
+  }
+
+  // Evento para el input de búsqueda con debounce
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(performSearch, 300);
+  });
+
+  // Evento para el checkbox de urgente
+  urgentFilter.addEventListener('change', performSearch);
+</script>
 {% endblock %}

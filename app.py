@@ -8,6 +8,7 @@ from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
 from flask_mail import Mail, Message
 import secrets
+from math import ceil
 # rutas para perfil de usuario
 
 
@@ -88,13 +89,67 @@ def load_user(user_id):
 
 @app.route('/')
 def home():
+    # Obtener parámetros de filtro y paginación
+    page = request.args.get('page', 1, type=int)
+    per_page = 5  # empleos por página
+    search = request.args.get('search', '')
+    filter_urgent = request.args.get('urgent', '')
+
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute(
-        "SELECT * FROM jobs ORDER BY urgent DESC, date_posted DESC LIMIT 5")
-    jobs1 = get_jobs()
+
+    # Construir la consulta base
+    query = """
+        SELECT j.*, u.username, u.phone_number
+        FROM jobs j
+        JOIN users u ON j.user_id = u.id
+        WHERE 1=1
+    """
+    params = []
+
+    # Agregar filtros si existen
+    if search:
+        query += " AND (j.title ILIKE %s OR j.description ILIKE %s)"
+        params.extend([f'%{search}%', f'%{search}%'])
+
+    if filter_urgent:
+        query += " AND j.urgent = TRUE"
+
+    # Contar total de registros para paginación
+    count_query = f"SELECT COUNT(*) FROM ({query}) as count_query"
+    cur.execute(count_query, params)
+    total_jobs = cur.fetchone()['count']
+    total_pages = ceil(total_jobs / per_page)
+
+    # Agregar ordenamiento y paginación
+    query += " ORDER BY j.urgent DESC, j.date_posted DESC LIMIT %s OFFSET %s"
+    offset = (page - 1) * per_page
+    params.extend([per_page, offset])
+
+    # Ejecutar consulta final
+    cur.execute(query, params)
+    jobs = cur.fetchall()
+
+    cur.close()
     conn.close()
-    return render_template('public_dashboard.html', jobs=jobs1)
+
+    # Si es una petición AJAX, devolver solo el contenido parcial
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render_template('partials/job_list.html',
+                               jobs=jobs,
+                               page=page,
+                               total_pages=total_pages,
+                               search=search,
+                               filter_urgent=filter_urgent)
+
+    # Si no es AJAX, devolver la página completa
+    return render_template('public_dashboard.html',
+                           jobs=jobs,
+                           page=page,
+                           total_pages=total_pages,
+                           search=search,
+                           filter_urgent=filter_urgent)
+
 # Ruta para el registro de usuarios
 
 
@@ -199,12 +254,56 @@ def profile():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    # Obtener parámetros de filtro y paginación
+    page = request.args.get('page', 1, type=int)
+    per_page = 5  # empleos por página
+    search = request.args.get('search', '')
+    filter_urgent = request.args.get('urgent', '')
+
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT * FROM jobs ORDER BY urgent DESC, date_posted DESC")
-    jobs1 = get_jobs()
+
+    # Construir la consulta base
+    query = """
+        SELECT j.*, u.username, u.phone_number
+        FROM jobs j
+        JOIN users u ON j.user_id = u.id
+        WHERE 1=1
+    """
+    params = []
+
+    # Agregar filtros si existen
+    if search:
+        query += " AND (j.title ILIKE %s OR j.description ILIKE %s)"
+        params.extend([f'%{search}%', f'%{search}%'])
+
+    if filter_urgent:
+        query += " AND j.urgent = TRUE"
+
+    # Contar total de registros para paginación
+    count_query = f"SELECT COUNT(*) FROM ({query}) as count_query"
+    cur.execute(count_query, params)
+    total_jobs = cur.fetchone()['count']
+    total_pages = ceil(total_jobs / per_page)
+
+    # Agregar ordenamiento y paginación
+    query += " ORDER BY j.urgent DESC, j.date_posted DESC LIMIT %s OFFSET %s"
+    offset = (page - 1) * per_page
+    params.extend([per_page, offset])
+
+    # Ejecutar consulta final
+    cur.execute(query, params)
+    jobs = cur.fetchall()
+
+    cur.close()
     conn.close()
-    return render_template('dashboard.html', jobs=jobs1)
+
+    return render_template('dashboard.html',
+                           jobs=jobs,
+                           page=page,
+                           total_pages=total_pages,
+                           search=search,
+                           filter_urgent=filter_urgent)
 
 # Ruta para crear un empleo
 
