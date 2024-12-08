@@ -1,86 +1,96 @@
 {% extends 'base.html' %} {% block content %}
-<div class="container my-5">
-  <div class="row justify-content-center">
-    <div class="col-12 col-md-8 col-lg-6">
-      <!-- Encabezado de perfil con fondo degradado -->
-      <div
-        class="card shadow-lg"
-        style="background: linear-gradient(to right, #00c6ff, #0072ff); color: white;"
-      >
-        <div class="card-body text-center">
-          <h2 class="card-title">
-            Bienvenido a tu perfil, {{ user.username }}
-          </h2>
-        </div>
-      </div>
-
-      <!-- Mensaje de éxito (si existe) -->
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %}
-      <div class="alert-container mt-3">
-        <ul class="list-unstyled">
-          {% for category, message in messages %}
-          <li
-            class="alert alert-{{ category }} alert-dismissible fade show"
-            role="alert"
-          >
-            {{ message }}
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="alert"
-              aria-label="Close"
-            ></button>
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
-      {% endif %} {% endwith %}
-
-      <!-- Formulario de edición del perfil -->
-      <form method="POST">
-        <div class="card shadow-sm mt-4">
-          <div class="card-body">
-            <div class="mb-3">
-              <label for="email" class="form-label">Correo electrónico</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value="{{ user.email }}"
-                class="form-control"
-                required
-              />
-            </div>
-            <div class="mb-3">
-              <label for="username" class="form-label">Nombre de usuario</label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                value="{{ user.username }}"
-                class="form-control"
-                required
-              />
-            </div>
-            <div class="mb-3">
-              <label for="phone_number" class="form-label">Teléfono</label>
-              <input
-                type="text"
-                id="phone_number"
-                name="phone_number"
-                value="{{ user.phone_number }}"
-                class="form-control"
-                required
-              />
-            </div>
-            <button type="submit" class="btn btn-lg btn-primary w-100">
-              Actualizar
-            </button>
-          </div>
-        </div>
-      </form>
+<div class="profile-container">
+  <!-- Header del perfil -->
+  <div class="profile-header">
+    <div class="profile-avatar">
+      <i class="fas fa-user-circle"></i>
     </div>
+    <h1>{{ user.username }}</h1>
+    <p class="profile-subtitle">Gestiona tu información personal</p>
+  </div>
+
+  <!-- Mensajes flash -->
+  {% with messages = get_flashed_messages(with_categories=true) %} {% if
+  messages %}
+  <div class="flash-messages">
+    {% for category, message in messages %}
+    <div class="flash-message {{ category }}">
+      <i class="fas fa-info-circle"></i>
+      <span>{{ message }}</span>
+      <button
+        type="button"
+        class="close-button"
+        onclick="this.parentElement.remove()"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %} {% endwith %}
+
+  <!-- Card del perfil -->
+  <div class="profile-card">
+    <form method="POST">
+      <!-- Email -->
+      <div class="form-section">
+        <div class="input-group">
+          <label for="email">
+            <i class="fas fa-envelope"></i>
+            Correo Electrónico
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value="{{ user.email }}"
+            required
+          />
+        </div>
+      </div>
+
+      <!-- Username -->
+      <div class="form-section">
+        <div class="input-group">
+          <label for="username">
+            <i class="fas fa-user"></i>
+            Nombre de Usuario
+          </label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            value="{{ user.username }}"
+            required
+          />
+        </div>
+      </div>
+
+      <!-- Phone -->
+      <div class="form-section">
+        <div class="input-group">
+          <label for="phone_number">
+            <i class="fas fa-phone"></i>
+            Teléfono
+          </label>
+          <input
+            type="tel"
+            id="phone_number"
+            name="phone_number"
+            value="{{ user.phone_number }}"
+            required
+          />
+        </div>
+      </div>
+
+      <!-- Botón de actualizar -->
+      <div class="form-actions">
+        <button type="submit" class="update-button">
+          <i class="fas fa-save"></i>
+          <span>Actualizar Perfil</span>
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}

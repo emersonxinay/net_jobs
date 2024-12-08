@@ -1,61 +1,82 @@
 {% extends "base.html" %} {% block content %}
-<div class="container mt-5 chat-container">
-  <h2 class="text-center mb-4">Chat con {{ chat_user.username }}</h2>
-  {% if chat_user.job_title %}
-  <p><strong>Empleo:</strong> {{ chat_user.job_title }}</p>
-  {% else %}
-  <p><strong>Empleo:</strong> No disponible</p>
-  {% endif %}
+<div class="chat-container">
+  <!-- Header del chat -->
+  <div class="chat-header">
+    <div class="chat-user-info">
+      <div class="user-avatar">
+        <i class="fas fa-user-circle"></i>
+      </div>
+      <div class="user-details">
+        <h2>{{ chat_user.username }}</h2>
+        {% if chat_user.job_title %}
+        <span class="user-job">
+          <i class="fas fa-briefcase"></i>
+          {{ chat_user.job_title }}
+        </span>
+        {% else %}
+        <span class="user-job">
+          <i class="fas fa-briefcase"></i>
+          No disponible
+        </span>
+        {% endif %}
+      </div>
+    </div>
+    <a href="{{ url_for('dashboard') }}" class="back-button">
+      <i class="fas fa-arrow-left"></i>
+      <span>Volver</span>
+    </a>
+  </div>
 
-  <div
-    class="messages mb-4"
-    style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 10px; padding: 10px;"
-  >
+  <!-- Área de mensajes -->
+  <div class="messages-container" id="messages">
     {% for msg in messages %} {% if msg.sender_id == current_user.id %}
-    <div
-      class="message sent p-2 mb-2"
-      style="background-color: #d1e7dd; border-radius: 8px; text-align: right;"
-    >
-      <strong>Tú:</strong> {{ msg.message }}
-      <br />
-      <small class="text-muted"
-        >{{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}</small
-      >
+    <div class="message-wrapper outgoing">
+      <div class="message">
+        <div class="message-content">{{ msg.message }}</div>
+        <div class="message-meta">
+          <span class="message-time">
+            <i class="far fa-clock"></i>
+            {{ msg.timestamp.strftime('%H:%M') }}
+          </span>
+          <span class="message-status">
+            <i class="fas fa-check-double"></i>
+          </span>
+        </div>
+      </div>
     </div>
     {% else %}
-    <div
-      class="message received p-2 mb-2"
-      style="background-color: #f8d7da; border-radius: 8px; text-align: left;"
-    >
-      <strong>{{ chat_user.username }}:</strong> {{ msg.message }}
-      <br />
-      <small class="text-muted"
-        >{{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}</small
-      >
+    <div class="message-wrapper incoming">
+      <div class="message">
+        <div class="message-content">{{ msg.message }}</div>
+        <div class="message-meta">
+          <span class="message-time">
+            <i class="far fa-clock"></i>
+            {{ msg.timestamp.strftime('%H:%M') }}
+          </span>
+        </div>
+      </div>
     </div>
     {% endif %} {% endfor %}
   </div>
 
-  <form id="message-form">
-    <div class="form-group">
-      <label for="message">Enviar Mensaje</label>
-      <textarea
-        class="form-control"
-        id="message"
-        name="message"
-        rows="3"
-        placeholder="Escribe tu mensaje..."
-        required
-        style="resize: none;"
-      ></textarea>
-    </div>
-    <div class="d-flex justify-content-between mt-3">
-      <button type="submit" class="btn btn-primary">Enviar</button>
-      <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"
-        >Volver al Dashboard</a
-      >
-    </div>
-  </form>
+  <!-- Área de entrada de mensaje -->
+  <div class="message-input-container">
+    <form id="message-form">
+      <div class="input-wrapper">
+        <textarea
+          id="message"
+          name="message"
+          placeholder="Escribe tu mensaje..."
+          required
+          rows="1"
+          onInput="this.parentNode.dataset.replicatedValue = this.value"
+        ></textarea>
+      </div>
+      <button type="submit" class="send-button">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </form>
+  </div>
 </div>
 
 <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
@@ -64,72 +85,78 @@
     transports: ['websocket'],
     upgrade: false
   });
-  const messagesDiv = document.querySelector('.messages');
 
-  // Función para agregar mensaje al DOM
-  function addMessageToChat(data) {
-    const isCurrentUser = data.sender_id === {{ current_user.id }};
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${isCurrentUser ? 'sent' : 'received'} p-2 mb-2`;
-    messageDiv.style.backgroundColor = isCurrentUser ? '#d1e7dd' : '#f8d7da';
-    messageDiv.style.borderRadius = '8px';
-    messageDiv.style.textAlign = isCurrentUser ? 'right' : 'left';
+  const messagesContainer = document.getElementById('messages');
+  const messageForm = document.getElementById('message-form');
+  const messageInput = document.getElementById('message');
 
-    messageDiv.innerHTML = `
-      <strong>${isCurrentUser ? 'Tú' : '{{ chat_user.username }}'}</strong>: ${data.message}
-      <br>
-      <small class="text-muted">${data.timestamp}</small>
-    `;
-
-    messagesDiv.appendChild(messageDiv);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  // Auto-scroll al último mensaje
+  function scrollToBottom() {
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
-  document.getElementById('message-form').addEventListener('submit', function(e) {
-    e.preventDefault();
+  // Ajustar altura del textarea
+  function adjustTextarea() {
+    messageInput.style.height = 'auto';
+    messageInput.style.height = messageInput.scrollHeight + 'px';
+  }
 
-    const messageInput = document.getElementById('message');
+  // Agregar mensaje al chat
+  function addMessageToChat(data) {
+    const isCurrentUser = data.sender_id === {{ current_user.id }};
+    const messageHTML = `
+      <div class="message-wrapper ${isCurrentUser ? 'outgoing' : 'incoming'}">
+        <div class="message">
+          <div class="message-content">${data.message}</div>
+          <div class="message-meta">
+            <span class="message-time">
+              <i class="far fa-clock"></i>
+              ${new Date().toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}
+            </span>
+            ${isCurrentUser ? '<span class="message-status"><i class="fas fa-check-double"></i></span>' : ''}
+          </div>
+        </div>
+      </div>
+    `;
+
+    messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
+    scrollToBottom();
+  }
+
+  // Event Listeners
+  messageForm.addEventListener('submit', function(e) {
+    e.preventDefault();
     const message = messageInput.value.trim();
 
     if (!message) return;
 
-    const data = {
+    socket.emit('send_message', {
       sender_id: {{ current_user.id }},
       receiver_id: {{ chat_user.id }},
       job_id: {{ request.view_args['job_id'] }},
       message: message
-    };
+    });
 
-    socket.emit('send_message', data);
     messageInput.value = '';
+    adjustTextarea();
   });
 
-  // Agregar logs para eventos de conexión
-  socket.on('connect', function() {
-    console.log('Conectado al servidor de WebSocket');
-    console.log('ID de Socket:', socket.id);
-    console.log('Usuario actual:', {{ current_user.id }});
-  });
+  messageInput.addEventListener('input', adjustTextarea);
 
-  socket.on('connect_error', (error) => {
-    console.error('Error de conexión:', error);
-  });
-
-  socket.on('disconnect', (reason) => {
-    console.log('Desconectado:', reason);
-  });
+  // Socket events
+  socket.on('connect', () => console.log('Conectado al WebSocket'));
+  socket.on('connect_error', (error) => console.error('Error de conexión:', error));
+  socket.on('disconnect', (reason) => console.log('Desconectado:', reason));
 
   socket.on('new_message', function(data) {
     console.log('Mensaje recibido:', data);
-    console.log('Usuario actual:', {{ current_user.id }});
-    console.log('Remitente:', data.sender_id);
-    console.log('Destinatario:', data.receiver_id);
     addMessageToChat(data);
   });
 
-  // Scroll al fondo al cargar
-  window.onload = function() {
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  };
+  // Inicialización
+  document.addEventListener('DOMContentLoaded', () => {
+    scrollToBottom();
+    adjustTextarea();
+  });
 </script>
 {% endblock %}

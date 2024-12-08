@@ -1,75 +1,134 @@
-{% extends "base.html" %} {% block title %}Registrar Cuenta{% endblock %} {%
-block content %}
-<div class="container d-flex justify-content-center align-items-center vh-100">
-  <div class="row w-100">
-    <div class="col-md-6 col-lg-4 mx-auto">
-      <div class="card shadow-lg rounded-lg">
-        <div class="card-body p-4">
-          <h3 class="text-center text-white mb-4">Crear una Cuenta</h3>
-          <form method="POST" aria-labelledby="registerForm">
-            <div class="form-group mb-3">
-              <label for="username" class="form-label">Nombre de Usuario</label>
-              <input
-                type="text"
-                class="form-control"
-                id="username"
-                name="username"
-                placeholder="Nombre de Usuario"
-                required
-                aria-describedby="usernameHelp"
-              />
-              <small id="usernameHelp" class="form-text text-muted"
-                >Este será el nombre con el que iniciarás sesión.</small
-              >
-            </div>
+{% extends "base.html" %} {% block content %}
+<div class="auth-container">
+  <div class="auth-card">
+    <!-- Logo -->
+    <div class="auth-logo">
+      <i class="fas fa-user-plus"></i>
+    </div>
 
-            <div class="form-group mb-3">
-              <label for="email" class="form-label">Correo Electrónico</label>
-              <input
-                type="email"
-                class="form-control"
-                id="email"
-                name="email"
-                placeholder="Correo Electrónico"
-                required
-                aria-describedby="emailHelp"
-              />
-              <small id="emailHelp" class="form-text text-muted"
-                >Te enviaremos notificaciones a este correo.</small
-              >
-            </div>
+    <!-- Header -->
+    <div class="auth-header">
+      <h1>Crear Cuenta</h1>
+      <p>Únete a nuestra comunidad</p>
+    </div>
 
-            <div class="form-group mb-4">
-              <label for="password" class="form-label">Contraseña</label>
-              <input
-                type="password"
-                class="form-control"
-                id="password"
-                name="password"
-                placeholder="Contraseña"
-                required
-                aria-describedby="passwordHelp"
-              />
-              <small id="passwordHelp" class="form-text text-muted"
-                >Debe tener al menos 8 caracteres.</small
-              >
-            </div>
+    <!-- Mensajes Flash -->
+    {% with messages = get_flashed_messages(with_categories=True) %} {% if
+    messages %}
+    <div class="flash-messages">
+      {% for category, message in messages %}
+      <div class="flash-message {{ category }}">
+        <i class="fas fa-info-circle"></i>
+        <span>{{ message }}</span>
+        <button
+          type="button"
+          class="close-button"
+          onclick="this.parentElement.remove()"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
 
-            <button type="submit" class="btn btn-primary btn-block w-100">
-              Registrar
-            </button>
+    <!-- Formulario -->
+    <form method="POST" class="auth-form">
+      <!-- Username -->
+      <div class="input-group">
+        <label for="username">
+          <i class="fas fa-user"></i>
+          Nombre de Usuario
+        </label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          required
+          placeholder="Elige un nombre de usuario"
+        />
+        <span class="input-hint">
+          <i class="fas fa-info-circle"></i>
+          Este será tu identificador único
+        </span>
+      </div>
 
-            <!-- Enlace para redirigir a la página de inicio de sesión -->
-            <p class="text-center mt-3">
-              ¿Ya tienes cuenta?
-              <a href="{{ url_for('login') }}" class="hover-primary"
-                >Inicia sesión aquí</a
-              >
-            </p>
-          </form>
+      <!-- Email -->
+      <div class="input-group">
+        <label for="email">
+          <i class="fas fa-envelope"></i>
+          Correo Electrónico
+        </label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          placeholder="tu@email.com"
+        />
+        <span class="input-hint">
+          <i class="fas fa-info-circle"></i>
+          Recibirás notificaciones importantes
+        </span>
+      </div>
+
+      <!-- Password -->
+      <div class="input-group">
+        <label for="password">
+          <i class="fas fa-lock"></i>
+          Contraseña
+        </label>
+        <div class="password-input">
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            placeholder="Crea una contraseña segura"
+          />
+          <button
+            type="button"
+            class="toggle-password"
+            onclick="togglePassword()"
+          >
+            <i class="fas fa-eye"></i>
+          </button>
         </div>
+        <span class="input-hint">
+          <i class="fas fa-shield-alt"></i>
+          Mínimo 8 caracteres
+        </span>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="auth-button">
+        <i class="fas fa-user-plus"></i>
+        Crear Cuenta
+      </button>
+    </form>
+
+    <!-- Login Link -->
+    <div class="auth-links">
+      <div class="login-link">
+        <span>¿Ya tienes cuenta?</span>
+        <a href="{{ url_for('login') }}">Inicia sesión aquí</a>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+  function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const toggleButton = document.querySelector('.toggle-password i');
+
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      toggleButton.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+      passwordInput.type = 'password';
+      toggleButton.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+  }
+</script>
 {% endblock %}

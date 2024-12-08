@@ -372,10 +372,15 @@ def send_message(receiver_id, job_id):
 @login_required
 def chat(user_id, job_id):
     try:
+        # Evitar que un usuario chatee consigo mismo
+        if current_user.id == user_id:
+            flash("No puedes iniciar un chat contigo mismo.", "danger")
+            return redirect(url_for('dashboard'))
+
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-        # Verificar que el trabajo existe
+        # Verificar que el trabajo existe y obtener información
         cur.execute("""
             SELECT j.*, u.username as job_owner_username
             FROM jobs j 
@@ -386,6 +391,12 @@ def chat(user_id, job_id):
 
         if not job:
             flash("El trabajo no existe o ha sido eliminado.", "danger")
+            return redirect(url_for('dashboard'))
+
+        # Verificar que el usuario actual sea el dueño del trabajo o esté chateando con el dueño
+        # job['user_id'] es el ID del dueño del trabajo
+        if not (current_user.id == job['user_id'] or user_id == job['user_id']):
+            flash("No tienes permiso para acceder a esta conversación.", "danger")
             return redirect(url_for('dashboard'))
 
         # Obtener la información del usuario con quien se chatea
@@ -422,24 +433,13 @@ def chat(user_id, job_id):
         cur.close()
         conn.close()
 
-        # Lógica de permisos simplificada
-        can_chat = (current_user.id == job['user_id'] or  # Es el dueño del trabajo
-                    current_user.id == user_id or          # Es el interesado
-                    # Está chateando con el dueño
-                    user_id == job['user_id'])
-
-        if not can_chat:
-            flash("No tienes permiso para acceder a esta conversación.", "danger")
-            return redirect(url_for('dashboard'))
-
         return render_template('chat.html',
                                chat_user=chat_user,
                                messages=messages,
-                               job=job,
-                               is_job_owner=(current_user.id == job['user_id']))
+                               job=job)
 
     except Exception as e:
-        print(f"Error en chat: {e}")  # Para debugging
+        print(f"Error en chat: {e}")
         flash(f"Error al cargar la conversación: {e}", "danger")
         return redirect(url_for('dashboard'))
 
@@ -520,7 +520,7 @@ def conversations():
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-        # Recuperar todas las conversaciones con mensajes relacionados al usuario actual
+        # Recuperar conversaciones no eliminadas por el usuario actual
         cur.execute("""
             WITH LastMessages AS (
                 SELECT 
@@ -538,7 +538,16 @@ def conversations():
                     job_id,
                     timestamp as last_message_time
                 FROM messages 
-                WHERE sender_id = %s OR receiver_id = %s
+                WHERE (sender_id = %s OR receiver_id = %s)
+                AND NOT EXISTS (
+                    SELECT 1 FROM deleted_conversations dc
+                    WHERE dc.user_id = %s
+                    AND dc.job_id = messages.job_id
+                    AND dc.other_user_id = CASE 
+                        WHEN sender_id = %s THEN receiver_id 
+                        ELSE sender_id 
+                    END
+                )
                 ORDER BY other_user_id, job_id, timestamp DESC
             )
             SELECT 
@@ -555,7 +564,8 @@ def conversations():
             JOIN jobs j ON j.id = lm.job_id
             WHERE j.id IS NOT NULL
             ORDER BY lm.last_message_time DESC
-        """, (current_user.id, current_user.id, current_user.id, current_user.id))
+        """, (current_user.id, current_user.id, current_user.id, current_user.id,
+              current_user.id, current_user.id))
 
         conversations = cur.fetchall()
 
@@ -598,14 +608,22 @@ def forgot_password():
 
             reset_url = url_for('reset_password', token=token, _external=True)
             msg = Message('Recuperación de password',
-                          sender=app.config['MAIL_DEFAULT_SENDER'], recipients=[email])
+                          sender=app.config['MAIL_DEFAULT_SENDER'],
+                          recipients=[email])
             msg.body = f'Para restablecer tu password, haz clic en el siguiente enlace: {
                 reset_url}'
             msg.charset = 'utf-8'
-            mail.send(msg)
 
-            flash(
-                'Se ha enviado un correo con instrucciones para restablecer tu password.', 'success')
+            try:
+                mail.send(msg)
+                flash(
+                    'Se ha enviado un correo con instrucciones para restablecer tu password.', 'success')
+            except ConnectionRefusedError:
+                flash('El servidor de correo no está disponible en este momento. Por favor, intenta más tarde o contacta al administrador.', 'warning')
+            except Exception as e:
+                flash(
+                    'Hubo un error al enviar el correo. Por favor, intenta más tarde.', 'warning')
+                print(f"Error al enviar correo: {str(e)}")
         else:
             flash('No se encontró una cuenta con ese correo electrónico.', 'danger')
 
@@ -643,6 +661,112 @@ def reset_password(token):
         return redirect(url_for('login'))
 
     return render_template('reset_password.html', token=token)
+
+
+@app.route('/delete_chat/<int:user_id>/<int:job_id>', methods=['POST'])
+@login_required
+def delete_chat(user_id, job_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # Verificar que el trabajo existe
+        cur.execute("SELECT user_id FROM jobs WHERE id = %s", (job_id,))
+        job = cur.fetchone()
+
+        if not job:
+            flash("El trabajo no existe o ha sido eliminado.", "danger")
+            return redirect(url_for('conversations'))
+
+        # Verificar que el usuario actual es parte de la conversación
+        if not (current_user.id == job['user_id'] or current_user.id == user_id):
+            flash("No tienes permiso para eliminar esta conversación.", "danger")
+            return redirect(url_for('conversations'))
+
+        # Marcar la conversación como eliminada para el usuario actual
+        cur.execute("""
+            INSERT INTO deleted_conversations (user_id, job_id, other_user_id)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (user_id, job_id, other_user_id) DO NOTHING
+        """, (current_user.id, job_id, user_id))
+
+        # Eliminar mensajes más antiguos de un mes
+        cur.execute("""
+            DELETE FROM messages 
+            WHERE job_id = %s 
+            AND timestamp < NOW() - INTERVAL '1 month'
+            AND EXISTS (
+                SELECT 1 FROM deleted_conversations dc1
+                WHERE dc1.job_id = messages.job_id
+                AND dc1.user_id = messages.sender_id
+            )
+            AND EXISTS (
+                SELECT 1 FROM deleted_conversations dc2
+                WHERE dc2.job_id = messages.job_id
+                AND dc2.user_id = messages.receiver_id
+            )
+        """, (job_id,))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        flash("La conversación ha sido eliminada de tu lista.", "success")
+        return redirect(url_for('conversations'))
+
+    except Exception as e:
+        print(f"Error al eliminar chat: {e}")
+        flash(f"Error al eliminar la conversación: {e}", "danger")
+        return redirect(url_for('conversations'))
+
+
+@app.route('/delete_job/<int:job_id>', methods=['POST'])
+@login_required
+def delete_job(job_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # Verificar que el trabajo existe y pertenece al usuario actual
+        cur.execute("SELECT user_id FROM jobs WHERE id = %s", (job_id,))
+        job = cur.fetchone()
+
+        if not job:
+            flash("El trabajo no existe.", "danger")
+            return redirect(url_for('dashboard'))
+
+        if job['user_id'] != current_user.id:
+            flash("No tienes permiso para eliminar este trabajo.", "danger")
+            return redirect(url_for('dashboard'))
+
+        # Eliminar los mensajes relacionados con el trabajo
+        cur.execute("DELETE FROM messages WHERE job_id = %s", (job_id,))
+
+        # Eliminar las conversaciones eliminadas relacionadas
+        cur.execute(
+            "DELETE FROM deleted_conversations WHERE job_id = %s", (job_id,))
+
+        # Eliminar el trabajo
+        cur.execute("DELETE FROM jobs WHERE id = %s", (job_id,))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        flash("Trabajo eliminado exitosamente.", "success")
+        return redirect(url_for('dashboard'))
+
+    except Exception as e:
+        print(f"Error al eliminar trabajo: {e}")
+        flash(f"Error al eliminar el trabajo: {e}", "danger")
+        return redirect(url_for('dashboard'))
+
+
+@app.context_processor
+def utility_processor():
+    return {
+        'current_year': datetime.utcnow().year
+    }
 
 
 if __name__ == '__main__':

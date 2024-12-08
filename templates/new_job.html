@@ -1,153 +1,156 @@
-{% extends "base.html" %} {% block title %}Publicar Nuevo Empleo{% endblock %}
-{% block content %}
-<div class="container mt-5">
-  <h1 class="text-center mb-4 text-white">Publicar Nuevo Empleo</h1>
-  <div class=" p-4 rounded shadow-lg">
+{% extends "base.html" %} {% block content %}
+<div class="job-form-container">
+  <div class="form-header">
+    <h1>
+      <i class="fas fa-briefcase"></i>
+      Publicar Nuevo Empleo
+    </h1>
+    <p class="subtitle">
+      Completa los detalles del trabajo que deseas publicar
+    </p>
+  </div>
+
+  <div class="job-form-card">
     <form method="POST">
-      <div class="row">
-        <!-- Título y Descripción en el mismo nivel -->
-        <div class="col-12 col-md-6 mb-4">
-          <div class="form-group">
-            <label for="title" class="text-white">Título del Trabajo</label>
+      <div class="form-grid">
+        <!-- Título y Descripción -->
+        <div class="form-section">
+          <div class="input-group">
+            <label for="title">
+              <i class="fas fa-heading"></i>
+              Título del Trabajo
+            </label>
             <input
               type="text"
-              class="form-control form-control-lg"
               name="title"
               id="title"
-              placeholder="Título del Trabajo"
               required
+              placeholder="Ej: Ayudante para Mudanza"
             />
           </div>
         </div>
 
-        <div class="col-12 col-md-6 mb-4">
-          <div class="form-group">
-            <label for="description" class="text-white"
-              >Descripción del Trabajo</label
-            >
+        <div class="form-section">
+          <div class="input-group">
+            <label for="description">
+              <i class="fas fa-align-left"></i>
+              Descripción
+            </label>
             <textarea
-              class="form-control form-control-lg"
               name="description"
               id="description"
-              placeholder="Descripción del Trabajo"
-              rows="4"
               required
+              placeholder="Describe los detalles del trabajo..."
             ></textarea>
           </div>
         </div>
 
-        <!-- Lugar -->
-        <div class="col-12 col-md-6 mb-4">
-          <div class="form-group">
-            <label for="locationn" class="text-white">Lugar</label>
+        <!-- Ubicación y Fecha -->
+        <div class="form-section">
+          <div class="input-group">
+            <label for="locationn">
+              <i class="fas fa-map-marker-alt"></i>
+              Ubicación
+            </label>
             <input
               type="text"
-              class="form-control form-control-lg"
               name="locationn"
               id="locationn"
-              placeholder="Lugar"
               required
+              placeholder="Ej: Av. Principal 123"
             />
           </div>
         </div>
 
-        <!-- Fecha Exacta -->
-        <div class="col-12 col-md-6 mb-4">
-          <div class="form-group">
-            <label for="exact_date" class="text-white">Fecha Exacta</label>
-            <input
-              type="date"
-              class="form-control form-control-lg"
-              name="exact_date"
-              id="exact_date"
-              required
-            />
+        <div class="form-section">
+          <div class="input-group">
+            <label for="exact_date">
+              <i class="fas fa-calendar"></i>
+              Fecha
+            </label>
+            <input type="date" name="exact_date" id="exact_date" required />
           </div>
         </div>
 
-        <!-- Hora de Inicio -->
-        <div class="col-12 col-md-6 mb-4">
-          <div class="form-group">
-            <label for="start_time" class="text-white">Hora de Inicio</label>
-            <input
-              type="time"
-              class="form-control form-control-lg"
-              name="start_time"
-              id="start_time"
-              required
-            />
+        <!-- Horarios -->
+        <div class="form-section">
+          <div class="input-group">
+            <label for="start_time">
+              <i class="fas fa-hourglass-start"></i>
+              Hora de Inicio
+            </label>
+            <input type="time" name="start_time" id="start_time" required />
           </div>
         </div>
 
-        <!-- Hora de Finalización -->
-        <div class="col-12 col-md-6 mb-4">
-          <div class="form-group">
-            <label for="end_time" class="text-white"
-              >Hora de Finalización</label
-            >
-            <input
-              type="time"
-              class="form-control form-control-lg"
-              name="end_time"
-              id="end_time"
-              required
-            />
+        <div class="form-section">
+          <div class="input-group">
+            <label for="end_time">
+              <i class="fas fa-hourglass-end"></i>
+              Hora de Fin
+            </label>
+            <input type="time" name="end_time" id="end_time" required />
           </div>
         </div>
 
-        <!-- Número de Contacto -->
-        <div class="col-12 col-md-6 mb-4">
-          <div class="form-group">
-            <label for="contact_number" class="text-white"
-              >Número de Contacto</label
-            >
+        <!-- Contacto y Precio -->
+        <div class="form-section">
+          <div class="input-group">
+            <label for="contact_number">
+              <i class="fas fa-phone"></i>
+              Teléfono de Contacto
+            </label>
             <input
-              type="text"
-              class="form-control form-control-lg"
+              type="tel"
               name="contact_number"
               id="contact_number"
-              placeholder="Número de Contacto"
               required
+              placeholder="Ej: +1234567890"
             />
           </div>
         </div>
 
-        <!-- Precio -->
-        <div class="col-12 col-md-6 mb-4">
-          <div class="form-group">
-            <label for="price" class="text-white">Precio</label>
+        <div class="form-section">
+          <div class="input-group">
+            <label for="price">
+              <i class="fas fa-dollar-sign"></i>
+              Precio
+            </label>
             <input
               type="number"
               step="0.01"
-              class="form-control form-control-lg"
               name="price"
               id="price"
-              placeholder="Precio por trabajo"
               required
+              placeholder="0.00"
             />
           </div>
         </div>
 
-        <!-- ¿Es Urgente? -->
-        <div class="col-12 col-md-6 mb-4">
-          <div class="form-group form-check">
+        <!-- Urgente -->
+        <div class="form-section urgent-section">
+          <div class="toggle-group">
             <input
               type="checkbox"
-              class="form-check-input"
               name="urgent"
               id="urgent"
+              class="toggle-input"
             />
-            <label class="form-check-label text-white" for="urgent"
-              >¿Es Urgente?</label
-            >
+            <label for="urgent" class="toggle-label">
+              <i class="fas fa-exclamation-circle"></i>
+              ¿Es un trabajo urgente?
+            </label>
           </div>
         </div>
       </div>
 
-      <!-- Botón de Publicar Empleo -->
-      <button type="submit" class="btn btn-primary btn-lg w-100 py-3">
-        Publicar Empleo
-      </button>
+      <!-- Botón de envío -->
+      <div class="form-actions">
+        <button type="submit" class="submit-button">
+          <i class="fas fa-paper-plane"></i>
+          Publicar Empleo
+        </button>
+      </div>
     </form>
   </div>
 </div>

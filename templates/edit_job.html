@@ -1,162 +1,180 @@
-{% extends "base.html" %} {% block title %}Editar Trabajo{% endblock %} {% block
-content %}
-<div class="container textos p-4 rounded shadow-lg mt-5">
-  <h1 class="mb-4">Editar Trabajo</h1>
-  <form method="POST">
-    <div class="row">
-      <!-- Título del Trabajo -->
-      <div class="col-12 col-md-6 mb-4">
-        <div class="form-group">
-          <label for="title">Título del Trabajo</label>
-          <input
-            type="text"
-            class="form-control form-control-lg"
-            name="title"
-            id="title"
-            placeholder="Título del Trabajo"
-            value="{{ job.title }}"
-            required
-          />
-        </div>
-      </div>
+{% extends "base.html" %} {% block content %}
+<div class="job-form-container">
+  <div class="form-header">
+    <h1>
+      <i class="fas fa-edit"></i>
+      Editar Trabajo
+    </h1>
+    <p class="subtitle">Actualiza los detalles del trabajo</p>
+  </div>
 
-      <!-- Descripción del Trabajo -->
-      <div class="col-12 col-md-6 mb-4">
-        <div class="form-group">
-          <label for="description">Descripción del Trabajo</label>
-          <textarea
-            class="form-control form-control-lg"
-            name="description"
-            id="description"
-            placeholder="Descripción del Trabajo"
-            rows="4"
-            required
-          >
+  <div class="job-form-card">
+    <form method="POST">
+      <div class="form-grid">
+        <!-- Título -->
+        <div class="form-section">
+          <div class="input-group">
+            <label for="title">
+              <i class="fas fa-heading"></i>
+              Título del Trabajo
+            </label>
+            <input
+              type="text"
+              name="title"
+              id="title"
+              value="{{ job.title }}"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="form-section">
+          <div class="input-group">
+            <label for="description">
+              <i class="fas fa-align-left"></i>
+              Descripción
+            </label>
+            <textarea name="description" id="description" required>
 {{ job.description }}</textarea
-          >
+            >
+          </div>
+        </div>
+
+        <!-- Ubicación -->
+        <div class="form-section">
+          <div class="input-group">
+            <label for="locationn">
+              <i class="fas fa-map-marker-alt"></i>
+              Ubicación
+            </label>
+            <input
+              type="text"
+              name="locationn"
+              id="locationn"
+              value="{{ job.locationn }}"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Fecha -->
+        <div class="form-section">
+          <div class="input-group">
+            <label for="exact_date">
+              <i class="fas fa-calendar"></i>
+              Fecha
+            </label>
+            <input
+              type="date"
+              name="exact_date"
+              id="exact_date"
+              value="{{ job.exact_date }}"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Hora Inicio -->
+        <div class="form-section">
+          <div class="input-group">
+            <label for="start_time">
+              <i class="fas fa-hourglass-start"></i>
+              Hora de Inicio
+            </label>
+            <input
+              type="time"
+              name="start_time"
+              id="start_time"
+              value="{{ job.start_time }}"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Hora Fin -->
+        <div class="form-section">
+          <div class="input-group">
+            <label for="end_time">
+              <i class="fas fa-hourglass-end"></i>
+              Hora de Fin
+            </label>
+            <input
+              type="time"
+              name="end_time"
+              id="end_time"
+              value="{{ job.end_time }}"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Contacto -->
+        <div class="form-section">
+          <div class="input-group">
+            <label for="contact_number">
+              <i class="fas fa-phone"></i>
+              Teléfono de Contacto
+            </label>
+            <input
+              type="tel"
+              name="contact_number"
+              id="contact_number"
+              value="{{ job.contact_number }}"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Precio -->
+        <div class="form-section">
+          <div class="input-group">
+            <label for="price">
+              <i class="fas fa-dollar-sign"></i>
+              Precio
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              name="price"
+              id="price"
+              value="{{ job.price }}"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Urgente -->
+        <div class="form-section urgent-section">
+          <div class="toggle-group">
+            <input
+              type="checkbox"
+              name="urgent"
+              id="urgent"
+              class="toggle-input"
+              {%
+              if
+              job.urgent
+              %}checked{%
+              endif
+              %}
+            />
+            <label for="urgent" class="toggle-label">
+              <i class="fas fa-exclamation-circle"></i>
+              ¿Es un trabajo urgente?
+            </label>
+          </div>
         </div>
       </div>
 
-      <!-- Lugar -->
-      <div class="col-12 col-md-6 mb-4">
-        <div class="form-group">
-          <label for="locationn">Lugar</label>
-          <input
-            type="text"
-            class="form-control form-control-lg"
-            name="locationn"
-            id="locationn"
-            placeholder="Lugar"
-            value="{{ job.locationn }}"
-            required
-          />
-        </div>
-      </div>
-
-      <!-- Fecha Exacta -->
-      <div class="col-12 col-md-6 mb-4">
-        <div class="form-group">
-          <label for="exact_date">Fecha Exacta</label>
-          <input
-            type="date"
-            class="form-control form-control-lg"
-            name="exact_date"
-            id="exact_date"
-            value="{{ job.exact_date }}"
-            required
-          />
-        </div>
-      </div>
-
-      <!-- Hora de Inicio -->
-      <div class="col-12 col-md-6 mb-4">
-        <div class="form-group">
-          <label for="start_time">Hora de Inicio</label>
-          <input
-            type="time"
-            class="form-control form-control-lg"
-            name="start_time"
-            id="start_time"
-            value="{{ job.start_time }}"
-            required
-          />
-        </div>
-      </div>
-
-      <!-- Hora de Finalización -->
-      <div class="col-12 col-md-6 mb-4">
-        <div class="form-group">
-          <label for="end_time">Hora de Finalización</label>
-          <input
-            type="time"
-            class="form-control form-control-lg"
-            name="end_time"
-            id="end_time"
-            value="{{ job.end_time }}"
-            required
-          />
-        </div>
-      </div>
-
-      <!-- Número de Contacto -->
-      <div class="col-12 col-md-6 mb-4">
-        <div class="form-group">
-          <label for="contact_number">Número de Contacto</label>
-          <input
-            type="text"
-            class="form-control form-control-lg"
-            name="contact_number"
-            id="contact_number"
-            placeholder="Número de Contacto"
-            value="{{ job.contact_number }}"
-            required
-          />
-        </div>
-      </div>
-
-      <!-- Precio -->
-      <div class="col-12 col-md-6 mb-4">
-        <div class="form-group">
-          <label for="price">Precio</label>
-          <input
-            type="number"
-            step="0.01"
-            class="form-control form-control-lg"
-            name="price"
-            id="price"
-            placeholder="Precio por trabajo"
-            value="{{ job.price }}"
-            required
-          />
-        </div>
-      </div>
-
-      <!-- ¿Es Urgente? -->
-      <div class="col-12 col-md-6 mb-4">
-        <div class="form-group form-check">
-          <input
-            type="checkbox"
-            class="form-check-input"
-            name="urgent"
-            id="urgent"
-            {%
-            if
-            job.urgent
-            %}checked{%
-            endif
-            %}
-          />
-          <label class="form-check-label" for="urgent">¿Es Urgente?</label>
-        </div>
-      </div>
-
-      <!-- Botón de Actualización -->
-      <div class="col-12 mb-4">
-        <button type="submit" class="btn btn-primary btn-lg w-100 py-3">
+      <!-- Botón de actualizar -->
+      <div class="form-actions">
+        <button type="submit" class="submit-button update">
+          <i class="fas fa-save"></i>
           Actualizar Trabajo
         </button>
       </div>
-    </div>
-  </form>
+    </form>
+  </div>
 </div>
 {% endblock %}

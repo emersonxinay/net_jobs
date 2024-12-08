@@ -2,30 +2,49 @@
 content %}
 <div class="container mt-5">
   <!-- Header Section -->
-  <div
-    class="d-flex flex-column flex-md-row justify-content-between align-items-center text-center gap-4 py-4 px-3  rounded shadow-sm"
-  >
-    <!-- Título e Información -->
-    <div>
-      <h1 class="text-white fw-bold">Ofertas de Trabajo</h1>
-      <h3 class="text-info fw-semibold">Para Jóvenes</h3>
-      <p class="text-light">Oportunidades laborales por horas</p>
-    </div>
+  <div class="dashboard-header">
+    <div class="header-content">
+      <!-- Texto principal -->
+      <div class="header-text-group">
+        <div class="main-title">
+          <i class="fas fa-briefcase title-icon"></i>
+          <h1>Ofertas de Trabajo</h1>
+        </div>
 
-    <!-- Botones -->
-    <div class="d-flex flex-column flex-md-row gap-3">
-      <a
-        href="{{ url_for('new_job') }}"
-        class="btn btn-primary px-4 py-2 rounded-pill shadow-sm text-uppercase fw-semibold"
-      >
-        Publicar Nuevo Empleo
-      </a>
-      <a
-        href="{{ url_for('conversations') }}"
-        class="btn btn-info px-4 py-2 rounded-pill shadow-sm text-uppercase fw-semibold"
-      >
-        Mis Conversaciones
-      </a>
+        <div class="subtitle-group">
+          <div class="subtitle-item">
+            <i class="fas fa-users"></i>
+            <h3>Para Jóvenes</h3>
+          </div>
+          <div class="subtitle-divider"></div>
+          <div class="subtitle-item">
+            <i class="fas fa-clock"></i>
+            <p>Oportunidades laborales por horas</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="header-actions">
+        <a href="{{ url_for('new_job') }}" class="action-button primary">
+          <div class="button-content">
+            <i class="fas fa-plus-circle"></i>
+            <span>Publicar Empleo</span>
+          </div>
+          <div class="button-shine"></div>
+        </a>
+
+        <a
+          href="{{ url_for('conversations') }}"
+          class="action-button secondary"
+        >
+          <div class="button-content">
+            <i class="fas fa-comments"></i>
+            <span>Conversaciones</span>
+          </div>
+          <div class="button-shine"></div>
+        </a>
+      </div>
     </div>
   </div>
 
@@ -34,82 +53,132 @@ content %}
   <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
     {% for job in jobs %}
     <div class="col">
-      <div class="card shadow-lg h-100 border-0">
-        <div class="card-body bg-gradient-card rounded-top">
-          <!-- Título -->
-          <h5 class="card-title text-truncate text-primary fw-bold">
-            {{ job.title }}
+      <div class="job-card">
+        <!-- Header con badge urgente -->
+        <div class="job-card-header">
+          {% if job.urgent %}
+          <div class="urgent-badge">
+            <i class="fas fa-bolt"></i>
+            <span>URGENTE</span>
+          </div>
+          {% endif %}
+          <h5 class="job-title">
+            <i class="fas fa-briefcase"></i>
+            <span>{{ job.title }}</span>
           </h5>
+        </div>
 
-          <!-- Información del Trabajo -->
-          <p class="card-text text-muted small mb-2">
-            <strong class="text-dark">📍 Lugar:</strong> {{ job.locationn }}<br />
-            <strong class="text-dark">📅 Fecha:</strong> {{ job.exact_date }}<br />
-            <strong class="text-dark">⏰ Hora:</strong> De {{ job.start_time }}
-            a {{ job.end_time }}
-          </p>
+        <!-- Contenido principal -->
+        <div class="job-card-content">
+          <!-- Info Grid -->
+          <div class="info-grid">
+            <div class="info-item">
+              <i class="fas fa-map-marker-alt"></i>
+              <div class="info-text">
+                <label>Ubicación</label>
+                <span>{{ job.locationn }}</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <i class="fas fa-calendar-alt"></i>
+              <div class="info-text">
+                <label>Fecha</label>
+                <span>{{ job.exact_date }}</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <i class="fas fa-clock"></i>
+              <div class="info-text">
+                <label>Horario</label>
+                <span>{{ job.start_time }} - {{ job.end_time }}</span>
+              </div>
+            </div>
+          </div>
 
           <!-- Descripción -->
-          <p class="card-text text-truncate">
-            {{ job.description[:120] }} {% if job.description|length > 120
-            %}...{% endif %}
-          </p>
+          <div class="description-box">
+            <div class="description-header">
+              <i class="fas fa-align-left"></i>
+              <span>Descripción</span>
+            </div>
+            <p>{{ job.description }}</p>
+          </div>
 
           <!-- Precio -->
-          {% if job.price %}
-          <p class="text-success fw-bold mt-3 mb-0">💰 Precio por trabajo:</p>
-          <p class="h5 text-success fw-bold mt-1 mb-0">${{ job.price }}</p>
-          {% else %}
-          <p class="text-muted mt-3">
-            <strong>No se ha publicado precio por trabajo</strong>
-          </p>
-          {% endif %}
+          <div
+            class="price-box {% if not job.price or job.price == 0 %}no-price{% endif %}"
+          >
+            Precio del trabajo:
+            <i
+              class="fas {% if job.price and job.price > 0 %}fa-hand-holding-usd{% else %}fa-exclamation-circle{% endif %}"
+            ></i>
+            <span>
+              {% if job.price and job.price > 0 %} ${{ job.price }} {% else %}
+              Precio no especificado {% endif %}
+            </span>
+          </div>
         </div>
 
         <!-- Footer -->
-        <div
-          class="card-footer bg-white border-top d-flex justify-content-between align-items-center"
-        >
-          <!-- Urgencia -->
-          <div>
-            <span
-              class="badge text-uppercase {{ 'bg-danger' if job.urgent else 'bg-secondary' }}"
-            >
-              {{ 'Urgente' if job.urgent else 'No Urgente' }}
-            </span>
-            <small class="text-muted ms-2">
-              Publicado por <strong>{{ job.username }}</strong> (📞 {{
-              job.phone_number }})
-            </small>
+        <div class="job-card-footer">
+          <div class="publisher-box">
+            <div class="publisher-info">
+              <i class="fas fa-user-circle"></i>
+              <span>{{ job.username }}</span>
+            </div>
+            {% if job.phone_number %}
+            <div class="contact-info">
+              <i class="fas fa-phone"></i>
+              <span>{{ job.phone_number }}</span>
+            </div>
+            {% else %}
+            <div class="no-contact">
+              <i class="fas fa-phone-slash"></i>
+              <span>Sin teléfono</span>
+            </div>
+            {% endif %}
           </div>
 
-          <!-- Botones -->
-          <div class="d-flex">
+          <!-- Acciones -->
+          <div class="action-box">
             {% if job.user_id == current_user.id %}
             <a
               href="{{ url_for('edit_job', job_id=job.id) }}"
-              class="btn btn-success btn-sm rounded-pill ms-2 shadow-sm"
+              class="btn-action edit"
             >
-              ✏️ Editar
+              <i class="fas fa-edit"></i>
+              <span>Editar</span>
             </a>
-            {% endif %} {% if job.user_id != current_user.id %}
+            <form
+              action="{{ url_for('delete_job', job_id=job.id) }}"
+              method="POST"
+              class="d-inline"
+            >
+              <button
+                type="submit"
+                class="btn-action delete"
+                onclick="return confirm('¿Eliminar este empleo?')"
+              >
+                <i class="fas fa-trash-alt"></i>
+                <span>Eliminar</span>
+              </button>
+            </form>
+            {% else %}
             <a
               href="{{ url_for('chat', user_id=job.user_id, job_id=job.id) }}"
-              class="btn btn-outline-primary btn-sm rounded-pill ms-2 shadow-sm"
+              class="btn-action chat"
             >
-              💬 Chat
+              <i class="fas fa-comments"></i>
+              <span>Contactar</span>
             </a>
             {% endif %}
           </div>
         </div>
       </div>
     </div>
-
     {% endfor %}
-  </div>
-  {% else %}
-  <div class="alert alert-warning text-center">
-    No hay ofertas de trabajo disponibles actualmente.
   </div>
   {% endif %}
 </div>

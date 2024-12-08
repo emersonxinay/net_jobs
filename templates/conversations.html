@@ -1,65 +1,107 @@
 {% extends "base.html" %} {% block content %}
-<div class="container mt-5">
-  <h2 class="text-center mb-4">Tus Conversaciones</h2>
+<div class="conversations-container">
+  <div class="conversations-header">
+    <h2>
+      <i class="fas fa-comments"></i>
+      Tus Conversaciones
+    </h2>
+  </div>
 
   {% if conversations %}
-  <div class="table-responsive">
-    <table class="table table-striped table-bordered">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Puesto de Trabajo</th>
-          <th>Fecha del Trabajo</th>
-          <th>Pago</th>
-          <th>Horas</th>
-          <th>Último mensaje</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for conversation in conversations|sort(attribute='last_message_time',
-        reverse=True) %}
-        <tr>
-          <td>{{ conversation.username }}</td>
-          <td>{{ conversation.job_title or '(Sin puesto de trabajo)' }}</td>
-          <td>{{ conversation.job_date or '(Fecha no especificada)' }}</td>
-          <td>
-            {{ '${:.2f}'.format(conversation.job_payment) if
-            conversation.job_payment else '(No especificado)' }}
-          </td>
-          <td>
-            {{ '{:.2f} horas'.format(conversation.job_hours) if
-            conversation.job_hours else '(No especificado)' }}
-          </td>
-          <td>
-            {{ conversation.last_message_time.strftime('%Y-%m-%d %H:%M') if
-            conversation.last_message_time }}
-          </td>
-          <td>
-            {% if conversation.job_id %}
+  <div class="conversations-table">
+    <!-- Encabezados -->
+    <div class="table-header">
+      <div class="col-user">Usuario</div>
+      <div class="col-job">Empleo</div>
+      <div class="col-date">Fecha</div>
+      <div class="col-time">Horario</div>
+      <div class="col-price">Pago</div>
+      <div class="col-actions">Acciones</div>
+    </div>
+
+    <!-- Filas de conversaciones -->
+    <div class="table-body">
+      {% for conversation in conversations|sort(attribute='last_message_time',
+      reverse=True) %}
+      <div class="table-row">
+        <div class="col-user">
+          <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <span>{{ conversation.username }}</span>
+          </div>
+        </div>
+
+        <div class="col-job">
+          <div class="job-info">
+            <i class="fas fa-briefcase"></i>
+            <span>{{ conversation.job_title or 'Sin especificar' }}</span>
+          </div>
+        </div>
+
+        <div class="col-date">
+          <div class="date-info">
+            <i class="fas fa-calendar"></i>
+            <span>{{ conversation.job_date or 'Sin fecha' }}</span>
+          </div>
+        </div>
+
+        <div class="col-time">
+          <div class="time-info">
+            <i class="fas fa-clock"></i>
+            <span
+              >{{ '{:.1f}h'.format(conversation.job_hours) if
+              conversation.job_hours else 'N/A' }}</span
+            >
+          </div>
+        </div>
+
+        <div class="col-price">
+          <div class="price-info">
+            <i class="fas fa-dollar-sign"></i>
+            <span
+              >{{ '${:.2f}'.format(conversation.job_payment) if
+              conversation.job_payment else 'N/A' }}</span
+            >
+          </div>
+        </div>
+
+        <div class="col-actions">
+          <div class="action-buttons">
             <a
               href="{{ url_for('chat', user_id=conversation.other_user_id, job_id=conversation.job_id) }}"
-              class="btn btn-primary btn-sm"
+              class="btn-action chat"
+              title="Ver chat"
             >
-              Ver Chat
+              <i class="fas fa-comments"></i>
             </a>
-            {% else %}
-            <span class="text-muted">Trabajo no disponible</span>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            <form
+              action="{{ url_for('delete_chat', user_id=conversation.other_user_id, job_id=conversation.job_id) }}"
+              method="POST"
+              class="d-inline"
+              onsubmit="return confirm('¿Eliminar esta conversación?');"
+            >
+              <button type="submit" class="btn-action delete" title="Eliminar">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
   </div>
   {% else %}
-  <div class="alert alert-info text-center">No tienes conversaciones aún.</div>
+  <div class="no-conversations">
+    <i class="fas fa-comments-alt"></i>
+    <p>No tienes conversaciones activas</p>
+  </div>
   {% endif %}
 
-  <div class="text-center mt-4">
-    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"
-      >Volver al Dashboard</a
-    >
+  <div class="back-button-container">
+    <a href="{{ url_for('dashboard') }}" class="back-button">
+      <i class="fas fa-arrow-left"></i>
+      <span>Volver al Dashboard</span>
+    </a>
   </div>
 </div>
 {% endblock %}

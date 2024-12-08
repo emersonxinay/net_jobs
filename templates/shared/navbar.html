@@ -1,14 +1,23 @@
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="navbar">
+<nav class="navbar navbar-expand-lg bg-gradient-navbar fixed-top" id="navbar">
   <div class="container">
-    <a class="navbar-brand" href="{{ url_for('home') }}">
-      <img
-        class="navbar-logo"
-        src="{{ url_for('static', filename='img/red_peguita_blanco.png') }}"
-      />
+    <!-- Logo -->
+    <a
+      class="navbar-brand d-flex align-items-center"
+      href="{{ url_for('home') }}"
+    >
+      <div class="logo-container">
+        <img
+          class="navbar-logo"
+          src="{{ url_for('static', filename='img/red_peguita_blanco.png') }}"
+          alt="Logo Red Joven Trabajo"
+        />
+      </div>
     </a>
+
+    <!-- Botón hamburguesa con animación -->
     <button
-      class="navbar-toggler"
+      class="navbar-toggler border-0"
       type="button"
       data-bs-toggle="collapse"
       data-bs-target="#navbarNav"
@@ -18,51 +27,86 @@
     >
       <span class="navbar-toggler-icon"></span>
     </button>
+
+    <!-- Menú de navegación -->
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <!-- Si el usuario está logueado -->
         {% if current_user.is_authenticated %}
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('dashboard') }}">
-            <i class="bi bi-house-door"></i> Dashboard
+          <a
+            class="nav-link nav-link-animated"
+            href="{{ url_for('dashboard') }}"
+          >
+            <i class="bi bi-house-door"></i>
+            <span>Dashboard</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('new_job') }}">
-            <i class="bi bi-file-earmark-plus"></i> Publicar Empleo
+          <a class="nav-link nav-link-animated" href="{{ url_for('new_job') }}">
+            <i class="bi bi-file-earmark-plus"></i>
+            <span>Publicar Empleo</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('conversations') }}">
-            <i class="bi bi-chat-dots"></i> Mis Conversaciones
+          <a
+            class="nav-link nav-link-animated"
+            href="{{ url_for('conversations') }}"
+          >
+            <i class="bi bi-chat-dots"></i>
+            <span>Conversaciones</span>
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('profile') }}">
-            <i class="bi bi-person-circle"></i> Hola, {{ current_user.username
-            }}
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link nav-link-animated dropdown-toggle"
+            href="#"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="bi bi-person-circle"></i>
+            <span>{{ current_user.username }}</span>
           </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('logout') }}">
-            <i class="bi bi-box-arrow-right"></i> Salir
-          </a>
+          <ul class="dropdown-menu dropdown-menu-end glass-effect">
+            <li>
+              <a class="dropdown-item" href="{{ url_for('profile') }}">
+                <i class="bi bi-person"></i> Mi Perfil
+              </a>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <a
+                class="dropdown-item text-danger"
+                href="{{ url_for('logout') }}"
+              >
+                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+              </a>
+            </li>
+          </ul>
         </li>
         {% else %}
-        <!-- Si el usuario no está logueado -->
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('home') }}">
-            <i class="bi bi-briefcase"></i> Empleos Rápidos
+          <a class="nav-link nav-link-animated" href="{{ url_for('home') }}">
+            <i class="bi bi-briefcase"></i>
+            <span>Empleos Rápidos</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('login') }}">
-            <i class="bi bi-person-lock"></i> Iniciar Sesión
+          <a
+            class="nav-link nav-link-animated btn-login"
+            href="{{ url_for('login') }}"
+          >
+            <i class="bi bi-person-lock"></i>
+            <span>Iniciar Sesión</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('register') }}">
-            <i class="bi bi-person-add"></i> Registrarse
+          <a
+            class="nav-link nav-link-animated btn-register"
+            href="{{ url_for('register') }}"
+          >
+            <i class="bi bi-person-add"></i>
+            <span>Registrarse</span>
           </a>
         </li>
         {% endif %}
