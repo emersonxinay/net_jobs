@@ -60,7 +60,7 @@ def get_db_connection():
             password=os.getenv('POSTGRES_PASSWORD'),
             host=os.getenv('POSTGRES_HOST'),
             port=os.getenv('POSTGRES_PORT'),
-            sslmode='disable'  # Forzamos explícitamente a deshabilitar SSL
+            sslmode='require'  # Importante para Supabase
         )
         return conn
     except psycopg2.Error as e:
