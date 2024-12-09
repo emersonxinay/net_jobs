@@ -21,7 +21,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: deleted_conversations; Type: TABLE; Schema: public; Owner: -
+-- Name: deleted_conversations; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.deleted_conversations (
@@ -33,8 +33,10 @@ CREATE TABLE public.deleted_conversations (
 );
 
 
+ALTER TABLE public.deleted_conversations OWNER TO postgres;
+
 --
--- Name: deleted_conversations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: deleted_conversations_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
 CREATE SEQUENCE public.deleted_conversations_id_seq
@@ -46,15 +48,17 @@ CREATE SEQUENCE public.deleted_conversations_id_seq
     CACHE 1;
 
 
+ALTER TABLE public.deleted_conversations_id_seq OWNER TO postgres;
+
 --
--- Name: deleted_conversations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: deleted_conversations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.deleted_conversations_id_seq OWNED BY public.deleted_conversations.id;
 
 
 --
--- Name: jobs; Type: TABLE; Schema: public; Owner: -
+-- Name: jobs; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.jobs (
@@ -73,8 +77,10 @@ CREATE TABLE public.jobs (
 );
 
 
+ALTER TABLE public.jobs OWNER TO postgres;
+
 --
--- Name: jobs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: jobs_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
 CREATE SEQUENCE public.jobs_id_seq
@@ -86,15 +92,17 @@ CREATE SEQUENCE public.jobs_id_seq
     CACHE 1;
 
 
+ALTER TABLE public.jobs_id_seq OWNER TO postgres;
+
 --
--- Name: jobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: jobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.jobs_id_seq OWNED BY public.jobs.id;
 
 
 --
--- Name: messages; Type: TABLE; Schema: public; Owner: -
+-- Name: messages; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.messages (
@@ -107,8 +115,10 @@ CREATE TABLE public.messages (
 );
 
 
+ALTER TABLE public.messages OWNER TO postgres;
+
 --
--- Name: messages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: messages_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
 CREATE SEQUENCE public.messages_id_seq
@@ -120,15 +130,53 @@ CREATE SEQUENCE public.messages_id_seq
     CACHE 1;
 
 
+ALTER TABLE public.messages_id_seq OWNER TO postgres;
+
 --
--- Name: messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.messages_id_seq OWNED BY public.messages.id;
 
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: -
+-- Name: read_messages; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.read_messages (
+    id integer NOT NULL,
+    user_id integer,
+    message_id integer,
+    read_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.read_messages OWNER TO postgres;
+
+--
+-- Name: read_messages_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.read_messages_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.read_messages_id_seq OWNER TO postgres;
+
+--
+-- Name: read_messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.read_messages_id_seq OWNED BY public.read_messages.id;
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.users (
@@ -142,8 +190,10 @@ CREATE TABLE public.users (
 );
 
 
+ALTER TABLE public.users OWNER TO postgres;
+
 --
--- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
 CREATE SEQUENCE public.users_id_seq
@@ -155,54 +205,65 @@ CREATE SEQUENCE public.users_id_seq
     CACHE 1;
 
 
+ALTER TABLE public.users_id_seq OWNER TO postgres;
+
 --
--- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- Name: deleted_conversations id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: deleted_conversations id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.deleted_conversations ALTER COLUMN id SET DEFAULT nextval('public.deleted_conversations_id_seq'::regclass);
 
 
 --
--- Name: jobs id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: jobs id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.jobs ALTER COLUMN id SET DEFAULT nextval('public.jobs_id_seq'::regclass);
 
 
 --
--- Name: messages id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: messages id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.messages ALTER COLUMN id SET DEFAULT nextval('public.messages_id_seq'::regclass);
 
 
 --
--- Name: users id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: read_messages id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.read_messages ALTER COLUMN id SET DEFAULT nextval('public.read_messages_id_seq'::regclass);
+
+
+--
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
 
 
 --
--- Data for Name: deleted_conversations; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: deleted_conversations; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.deleted_conversations (id, user_id, job_id, other_user_id, deleted_at) FROM stdin;
 1	5	8	5	2024-12-07 18:36:33.175328
 2	5	11	8	2024-12-07 18:37:57.938037
 3	8	16	4	2024-12-07 20:18:14.19473
+4	4	17	5	2024-12-08 18:54:56.200651
+5	4	17	4	2024-12-08 18:57:47.445372
 \.
 
 
 --
--- Data for Name: jobs; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: jobs; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.jobs (id, title, description, urgent, date_posted, user_id, locationn, exact_date, start_time, end_time, contact_number, price) FROM stdin;
@@ -211,15 +272,14 @@ COPY public.jobs (id, title, description, urgent, date_posted, user_id, location
 10	Cuidador de gatos	sacar a pasear a mis gatos durante el día	t	2024-12-02 17:47:52.821019	5	Plaza Colon	2024-12-06	16:30:00	17:30:00	986342674	\N
 11	Limpieza de depa	Limpiar las mesas y barrer el piso	t	2024-12-02 21:01:46.083765	5	Galleguillos Lorca 133	2024-12-05	15:00:00	16:00:00	989384764	\N
 13	Programador Junior	Un programador que desarrolle en python	t	2024-12-03 11:46:39.558772	4	Plaza Antofagasta	2024-12-12	09:00:00	12:00:00	98349843	\N
-14	Diseñador Grafico	Diseñar para restaurantes 	t	2024-12-03 13:11:32.70561	10	Antofgasta	2024-12-17	09:00:00	13:00:00	983746533	15000.00
-15	Tareas de matemáticas	ejercicios de algebra para resolver	t	2024-12-03 19:17:27.254372	10	Santiago	2024-12-11	20:00:00	21:30:00	878378382	10000.00
 16	Cuidar un cuaderno en sala	Vas a tener que estar por 1 hora cuidando que nadie se robe el cuaderno de la sala	t	2024-12-07 15:44:40.806016	8	antofagasta	2024-12-09	15:44:00	16:44:00	989384764	15000.00
 17	Responder comentarios en redes sociales 	Solo duranto 4 horas responder onlinemente comentarios en redes sociales.	t	2024-12-07 16:05:35.045694	4	Trabajo Online	2024-12-11	09:00:00	12:00:00	989484885	40000.00
+18	Editor de noticias de Chile	Las noticias del momento	t	2024-12-08 20:56:40.741246	7	online	2024-12-14	09:00:00	12:00:00	976547374	60000.00
 \.
 
 
 --
--- Data for Name: messages; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: messages; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.messages (id, sender_id, receiver_id, message, "timestamp", job_id) FROM stdin;
@@ -293,8 +353,6 @@ COPY public.messages (id, sender_id, receiver_id, message, "timestamp", job_id) 
 68	10	4	como va todo con los proyectos?	2024-12-03 17:48:00	9
 69	10	5	Hola, quisiera hacer limpieza de departamentos.	2024-12-03 17:55:00	11
 70	10	5	Hola benja, quisiera cuidar gatitos, te parece para el viernes?	2024-12-03 17:56:00	10
-71	5	10	Hola Alaska, quiero ser una diseñador grafico. 	2024-12-03 17:57:00	14
-72	5	10	Necesito saber que día podemos coordinar	2024-12-03 18:01:00	14
 73	10	5	Que novedades	2024-12-03 18:33:00	10
 75	5	4	Quisiera ser un buen programador	2024-12-03 18:37:00	13
 76	5	4	Hola emer, buscas programador?	2024-12-03 18:56:00	9
@@ -303,7 +361,6 @@ COPY public.messages (id, sender_id, receiver_id, message, "timestamp", job_id) 
 79	4	4	hola amigo, necesito trabajar solo 3 horas que dices?	2024-12-03 20:55:00	8
 80	4	5	Hola amigo, como te en todo	2024-12-03 20:56:00	11
 82	11	4	Hola Emerson, necesito subir saber mas sobre el puesto a desarrollar	2024-12-04 00:42:00	13
-83	5	10	necesito este trabajo	2024-12-04 00:51:00	15
 87	8	4	como va todo	2024-12-07 16:40:00	8
 90	4	8	Hola juanito como estas, necesito cuidar ese cuaderno.	2024-12-07 18:45:29.940873	16
 91	8	4	hola amigo	2024-12-07 18:58:11.725256	16
@@ -316,11 +373,6 @@ COPY public.messages (id, sender_id, receiver_id, message, "timestamp", job_id) 
 102	4	8	vamos bien	2024-12-07 19:37:07.645638	17
 103	4	8	y tu que tal como vas ?	2024-12-07 19:37:14.479496	17
 104	8	4	Yo aquí bien tambine	2024-12-07 19:37:27.636996	17
-105	8	10	Hola Alaska,  necesito hacer las cosas de mejor manera.	2024-12-07 19:40:12.146096	15
-106	10	8	Hola Juanito, me parece que puedas seguir en esto	2024-12-07 19:40:38.399741	15
-107	10	8	quisiera ser un gran conquistador	2024-12-07 19:40:59.250486	15
-108	8	10	Estamos trabajando para conseguir los mejores trabajos	2024-12-07 19:41:16.030743	15
-109	10	8	estamos bien ?	2024-12-07 19:45:46.986934	15
 110	4	8	ahora si que anda bien	2024-12-07 19:47:19.260502	17
 111	4	8	hey	2024-12-07 20:00:03.695376	16
 112	4	8	como estas	2024-12-07 20:00:10.000367	16
@@ -343,11 +395,114 @@ COPY public.messages (id, sender_id, receiver_id, message, "timestamp", job_id) 
 132	5	7	como crees que nos ira ahora que ya esta mejorando las acciones de navidad	2024-12-07 23:36:08.620324	10
 133	7	5	Como te va a ti,y que cosas interesantes sabes hacer	2024-12-08 00:08:26.423203	10
 134	5	7	me va todo bien y hay muchas cosas intersante por ver	2024-12-08 00:08:45.531988	10
+135	5	4	hola amigo emerson	2024-12-08 20:50:23.157504	17
+136	4	5	Hola que tal amigo, como te va y que deseas?	2024-12-08 20:51:59.326164	17
+137	5	4	Hola amigo nuevamente	2024-12-08 18:30:51.773896	17
+138	4	5	como estas amigo	2024-12-08 18:31:35.313552	17
+139	4	5	te saluda benja	2024-12-08 18:32:53.313544	17
+140	5	4	aqui te saluda emerson	2024-12-08 18:33:34.772339	17
+141	5	4	como le va en todo	2024-12-08 18:35:31.061612	17
+142	4	5	todo bien por ahora	2024-12-08 18:35:52.807582	17
+143	4	5	hola desde ahora	2024-12-08 18:41:43.745999	17
+144	5	4	quieres saber algo mas?	2024-12-08 18:42:12.317915	17
+145	4	5	hola amigo como va todo	2024-12-08 18:44:14.264448	17
+146	5	4	estamos realizando un buen trabajo	2024-12-08 18:48:22.508576	17
+147	4	5	podrias contar un poco mas sobre tu vida profesional?	2024-12-08 18:48:44.991516	17
+148	5	4	hola como va todo ?	2024-12-08 18:52:57.974795	17
+149	4	5	aqui todo bien y tú como estas?	2024-12-08 18:53:18.044663	17
+150	4	4	Hola emerson, me gustaria saber un poco mas sobre este puesto.	2024-12-08 18:56:06.210705	17
+151	5	4	hola amigo como te va nuevmante	2024-12-08 18:58:59.949793	17
+152	5	4	todo bien me va amigo, y a ti como te va?	2024-12-08 19:00:28.122795	11
+153	4	5	tambien todo bien	2024-12-08 19:00:48.059567	11
+154	4	5	de cuanto estamos hablando para crear un nueva red social?	2024-12-08 19:01:33.126101	11
+155	5	4	me parece que de poco nada mas	2024-12-08 19:01:46.350468	11
+156	5	4	interesante lo que dices, me gustaria seguir en esto	2024-12-08 19:02:09.76119	11
+157	4	5	entonces podemos hacer una reunión para ver mas a detalle	2024-12-08 19:02:44.017785	11
+158	5	4	Hola amigo emerson, estas por ahi?	2024-12-08 19:13:54.820494	11
+159	5	4	hey amigo	2024-12-08 19:14:31.872452	11
+160	4	10	gracias por su interes en saber mas sobre esto	2024-12-08 19:47:04.711055	8
+161	5	4	Hola emerson como va todo	2024-12-08 19:47:56.446932	9
+162	4	5	que deseas saber mi bro	2024-12-08 19:48:59.817196	9
+163	5	4	quisiera saber como va el trabajo	2024-12-08 19:49:40.873493	9
+164	4	10	Hola Alaska	2024-12-08 20:30:10.515561	9
+165	7	4	Quisiera saber un poco mas sobre el puesto de trabajo	2024-12-08 20:39:43.328984	17
 \.
 
 
 --
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: read_messages; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.read_messages (id, user_id, message_id, read_at) FROM stdin;
+1	4	152	2024-12-08 19:25:27.448588
+2	4	155	2024-12-08 19:25:27.448588
+3	4	156	2024-12-08 19:25:27.448588
+4	4	158	2024-12-08 19:25:27.448588
+5	4	159	2024-12-08 19:25:27.448588
+6	4	91	2024-12-08 19:25:44.290226
+7	4	93	2024-12-08 19:25:44.290226
+8	4	96	2024-12-08 19:25:44.290226
+9	4	97	2024-12-08 19:25:44.290226
+10	4	114	2024-12-08 19:25:44.290226
+11	4	99	2024-12-08 19:26:03.623526
+12	4	100	2024-12-08 19:26:03.623526
+13	4	104	2024-12-08 19:26:03.623526
+14	4	82	2024-12-08 19:26:23.166871
+15	4	47	2024-12-08 19:45:30.448793
+16	4	46	2024-12-08 19:45:30.448793
+17	4	40	2024-12-08 19:45:30.448793
+18	4	50	2024-12-08 19:45:30.448793
+19	4	43	2024-12-08 19:45:30.448793
+20	4	87	2024-12-08 19:45:30.448793
+21	4	25	2024-12-08 19:46:05.383935
+22	4	33	2024-12-08 19:46:05.383935
+23	4	57	2024-12-08 19:46:05.383935
+24	4	31	2024-12-08 19:46:05.383935
+25	4	34	2024-12-08 19:46:05.383935
+26	4	12	2024-12-08 19:46:05.383935
+27	4	10	2024-12-08 19:46:05.383935
+28	4	18	2024-12-08 19:46:05.383935
+29	4	13	2024-12-08 19:46:05.383935
+30	4	21	2024-12-08 19:46:05.383935
+31	4	19	2024-12-08 19:46:05.383935
+32	4	32	2024-12-08 19:46:05.383935
+33	4	24	2024-12-08 19:46:05.383935
+34	4	55	2024-12-08 19:46:05.383935
+35	4	38	2024-12-08 19:46:05.383935
+36	4	28	2024-12-08 19:46:05.383935
+37	4	30	2024-12-08 19:46:05.383935
+38	4	51	2024-12-08 19:46:05.383935
+39	4	29	2024-12-08 19:46:05.383935
+40	4	16	2024-12-08 19:46:05.383935
+41	4	54	2024-12-08 19:46:05.383935
+42	4	23	2024-12-08 19:46:05.383935
+43	4	58	2024-12-08 19:46:05.383935
+44	4	1	2024-12-08 19:46:05.383935
+45	4	22	2024-12-08 19:46:05.383935
+46	4	3	2024-12-08 19:46:05.383935
+47	4	66	2024-12-08 19:46:37.364054
+48	4	64	2024-12-08 19:46:37.364054
+49	4	65	2024-12-08 19:46:37.364054
+50	4	61	2024-12-08 19:46:37.364054
+51	4	76	2024-12-08 19:48:24.153604
+52	4	161	2024-12-08 19:48:24.153604
+53	5	162	2024-12-08 19:49:19.911844
+54	4	163	2024-12-08 19:49:53.417653
+55	4	79	2024-12-08 20:25:08.267675
+56	4	14	2024-12-08 20:25:08.267675
+57	4	68	2024-12-08 20:29:54.532394
+58	4	67	2024-12-08 20:29:54.532394
+59	4	77	2024-12-08 20:30:32.929646
+60	4	75	2024-12-08 20:30:47.648526
+61	7	5	2024-12-08 20:32:17.976598
+62	7	129	2024-12-08 20:32:31.074812
+63	7	132	2024-12-08 20:32:31.074812
+64	7	134	2024-12-08 20:32:31.074812
+\.
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.users (id, username, password, phone_number, email, reset_token, reset_expiration) FROM stdin;
@@ -361,35 +516,42 @@ COPY public.users (id, username, password, phone_number, email, reset_token, res
 
 
 --
--- Name: deleted_conversations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+-- Name: deleted_conversations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.deleted_conversations_id_seq', 3, true);
-
-
---
--- Name: jobs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
---
-
-SELECT pg_catalog.setval('public.jobs_id_seq', 17, true);
+SELECT pg_catalog.setval('public.deleted_conversations_id_seq', 5, true);
 
 
 --
--- Name: messages_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+-- Name: jobs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.messages_id_seq', 134, true);
+SELECT pg_catalog.setval('public.jobs_id_seq', 25, true);
 
 
 --
--- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+-- Name: messages_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.messages_id_seq', 165, true);
+
+
+--
+-- Name: read_messages_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.read_messages_id_seq', 66, true);
+
+
+--
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
 SELECT pg_catalog.setval('public.users_id_seq', 11, true);
 
 
 --
--- Name: deleted_conversations deleted_conversations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: deleted_conversations deleted_conversations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.deleted_conversations
@@ -397,7 +559,7 @@ ALTER TABLE ONLY public.deleted_conversations
 
 
 --
--- Name: deleted_conversations deleted_conversations_user_id_job_id_other_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: deleted_conversations deleted_conversations_user_id_job_id_other_user_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.deleted_conversations
@@ -405,7 +567,7 @@ ALTER TABLE ONLY public.deleted_conversations
 
 
 --
--- Name: jobs jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: jobs jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.jobs
@@ -413,7 +575,7 @@ ALTER TABLE ONLY public.jobs
 
 
 --
--- Name: messages messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: messages messages_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.messages
@@ -421,7 +583,23 @@ ALTER TABLE ONLY public.messages
 
 
 --
--- Name: users unique_email; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: read_messages read_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.read_messages
+    ADD CONSTRAINT read_messages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: read_messages read_messages_user_id_message_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.read_messages
+    ADD CONSTRAINT read_messages_user_id_message_id_key UNIQUE (user_id, message_id);
+
+
+--
+-- Name: users unique_email; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.users
@@ -429,7 +607,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.users
@@ -437,7 +615,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.users
@@ -445,7 +623,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: deleted_conversations deleted_conversations_job_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: deleted_conversations deleted_conversations_job_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.deleted_conversations
@@ -453,7 +631,7 @@ ALTER TABLE ONLY public.deleted_conversations
 
 
 --
--- Name: deleted_conversations deleted_conversations_other_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: deleted_conversations deleted_conversations_other_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.deleted_conversations
@@ -461,7 +639,7 @@ ALTER TABLE ONLY public.deleted_conversations
 
 
 --
--- Name: deleted_conversations deleted_conversations_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: deleted_conversations deleted_conversations_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.deleted_conversations
@@ -469,7 +647,7 @@ ALTER TABLE ONLY public.deleted_conversations
 
 
 --
--- Name: messages fk_job_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: messages fk_job_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.messages
@@ -477,7 +655,7 @@ ALTER TABLE ONLY public.messages
 
 
 --
--- Name: jobs jobs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: jobs jobs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.jobs
@@ -485,7 +663,7 @@ ALTER TABLE ONLY public.jobs
 
 
 --
--- Name: messages messages_receiver_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: messages messages_receiver_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.messages
@@ -493,11 +671,27 @@ ALTER TABLE ONLY public.messages
 
 
 --
--- Name: messages messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: messages messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.messages
     ADD CONSTRAINT messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: read_messages read_messages_message_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.read_messages
+    ADD CONSTRAINT read_messages_message_id_fkey FOREIGN KEY (message_id) REFERENCES public.messages(id);
+
+
+--
+-- Name: read_messages read_messages_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.read_messages
+    ADD CONSTRAINT read_messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
