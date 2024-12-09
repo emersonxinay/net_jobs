@@ -27,6 +27,21 @@
     </a>
   </div>
 
+  <!-- Indicadores de estado -->
+  <div id="typing-indicator" class="typing-indicator" style="display: none;">
+    <span class="username"></span>
+    <div class="typing-dots">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </div>
+
+  <div id="sending-indicator" class="sending-indicator" style="display: none;">
+    <div class="sending-spinner"></div>
+    <span>Enviando mensaje...</span>
+  </div>
+
   <!-- Área de mensajes -->
   <div class="messages-container" id="messages">
     {% for msg in messages %} {% if msg.sender_id == current_user.id %}
@@ -136,56 +151,129 @@
   const pusher = new Pusher('{{ config.PUSHER_KEY }}', {
     cluster: '{{ config.PUSHER_CLUSTER }}',
     encrypted: true,
-    authEndpoint: '/pusher/auth'
+    authEndpoint: '/pusher/auth',
+    auth: {
+      headers: {
+        'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+      }
+    }
   });
 
-  // Suscribirse al canal privado
-  const channel = pusher.subscribe(`private-chat-${currentUserId}`);
+  // Suscribirse al canal privado con mejor manejo de errores
+  const channelName = `private-chat-${currentUserId}`;
+  console.log('Intentando suscribirse al canal:', channelName);
 
-  // Manejar eventos de conexión
-  pusher.connection.bind('connected', () => {
-    console.log('Conectado a Pusher');
+  const channel = pusher.subscribe(channelName);
+
+  channel.bind('pusher:subscription_succeeded', () => {
+    console.log('✅ Suscripción exitosa al canal:', channelName);
   });
 
-  // Escuchar nuevos mensajes
+  channel.bind('pusher:subscription_error', (error) => {
+    console.error('❌ Error en suscripción:', error);
+  });
+
   channel.bind('new_message', function(data) {
-    console.log('Mensaje recibido:', data);
-    if (data.job_id === currentJobId) {
+    console.log('📩 Nuevo mensaje recibido:', data);
+    if (parseInt(data.job_id) === parseInt(currentJobId)) {
       appendMessage(data);
     }
   });
 
-  // Manejar envío del formulario
+  // Variables para el manejo de escritura
+  let typingTimer;
+  const TYPING_TIMER_LENGTH = 3000;
+
+  // Funciones para los indicadores
+  function showTypingIndicator(username) {
+    console.log('Mostrando indicador de escritura para:', username);
+    const indicator = document.getElementById('typing-indicator');
+    if (!indicator) {
+        console.error('No se encontró el elemento typing-indicator');
+        return;
+    }
+    const usernameSpan = indicator.querySelector('.username');
+    if (!usernameSpan) {
+        console.error('No se encontró el elemento username');
+        return;
+    }
+    usernameSpan.textContent = `${username} está escribiendo...`;
+    indicator.style.display = 'flex';
+  }
+
+  function hideTypingIndicator() {
+    document.getElementById('typing-indicator').style.display = 'none';
+  }
+
+  function showSendingIndicator() {
+    document.getElementById('sending-indicator').style.display = 'flex';
+  }
+
+  function hideSendingIndicator() {
+    document.getElementById('sending-indicator').style.display = 'none';
+  }
+
+  // Evento de escritura
+  document.getElementById('message').addEventListener('input', function() {
+    console.log('Evento input detectado');
+    channel.trigger('client-typing', {
+        username: '{{ current_user.username }}'
+    });
+    console.log('Evento typing enviado');
+
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(hideTypingIndicator, TYPING_TIMER_LENGTH);
+  });
+
+  // Escuchar eventos de escritura
+  channel.bind('client-typing', function(data) {
+    console.log('Evento typing recibido:', data);
+    if (data.username !== '{{ current_user.username }}') {
+        showTypingIndicator(data.username);
+    }
+  });
+
+  // Modificar el evento submit del formulario
   document.getElementById('message-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const messageInput = document.getElementById('message');
     const message = messageInput.value.trim();
 
     if (message) {
-      // Limpiar el input inmediatamente
+      showSendingIndicator();
       messageInput.value = '';
 
       fetch(this.action, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
         },
-        body: `message=${encodeURIComponent(message)}`
+        body: new URLSearchParams({
+          'message': message,
+          'csrf_token': document.querySelector('input[name="csrf_token"]').value
+        })
       })
       .then(response => response.json())
       .then(data => {
+        hideSendingIndicator();
         if (data.error) {
           throw new Error(data.error);
         }
-        // El mensaje se mostrará a través del evento Pusher
+        appendMessage(data.data, true);
       })
       .catch(error => {
-        console.error('Error:', error);
-        alert('Error al enviar el mensaje');
-        // Restaurar el mensaje en el input si hubo error
+        hideSendingIndicator();
         messageInput.value = message;
+        console.error('Error:', error);
+        alert('Error al enviar el mensaje: ' + error.message);
       });
     }
+  });
+
+  // Limpiar el timer cuando se desmonte el componente
+  window.addEventListener('beforeunload', function() {
+    clearTimeout(typingTimer);
   });
 
   // Función para scroll automático
@@ -203,5 +291,94 @@
       markMessagesAsRead(otherUserId, currentJobId);
     }
   });
+
+  // Al inicio del script
+  console.log('Pusher Key:', '{{ config.PUSHER_KEY }}');
+  console.log('Pusher Cluster:', '{{ config.PUSHER_CLUSTER }}');
+  console.log('Current User ID:', currentUserId);
+  console.log('Current Job ID:', currentJobId);
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Verificar que los elementos existen
+    const typingIndicator = document.getElementById('typing-indicator');
+    const sendingIndicator = document.getElementById('sending-indicator');
+
+    console.log('Typing indicator:', typingIndicator);
+    console.log('Sending indicator:', sendingIndicator);
+
+    // Modificar el evento input del textarea
+    const messageInput = document.getElementById('message');
+    messageInput.addEventListener('input', function() {
+        console.log('Input detectado');
+
+        // Forzar mostrar el indicador de escritura
+        if (typingIndicator) {
+            typingIndicator.style.display = 'flex';
+            typingIndicator.querySelector('.username').textContent =
+                '{{ current_user.username }} está escribiendo...';
+
+            // Ocultar después de 3 segundos
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                typingIndicator.style.display = 'none';
+            }, 3000);
+        }
+    });
+
+    // Modificar el evento submit del formulario
+    document.getElementById('message-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const message = messageInput.value.trim();
+
+        if (message) {
+            // Mostrar el indicador de envío
+            if (sendingIndicator) {
+                sendingIndicator.style.display = 'flex';
+            }
+
+            // ... resto del código de envío ...
+
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+                },
+                body: new URLSearchParams({
+                    'message': message,
+                    'csrf_token': document.querySelector('input[name="csrf_token"]').value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (sendingIndicator) {
+                    sendingIndicator.style.display = 'none';
+                }
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                messageInput.value = '';
+                appendMessage(data.data, true);
+            })
+            .catch(error => {
+                if (sendingIndicator) {
+                    sendingIndicator.style.display = 'none';
+                }
+                console.error('Error:', error);
+                alert('Error al enviar el mensaje: ' + error.message);
+            });
+        }
+    });
+  });
 </script>
+
+<style>
+  /* Solo para debug - remueve esto después */
+  .typing-indicator {
+      border: 2px solid red !important;
+  }
+  .sending-indicator {
+      border: 2px solid blue !important;
+  }
+</style>
 {% endblock %}

@@ -1,18 +1,20 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from flask_bcrypt import Bcrypt
-import psycopg2
-import psycopg2.extras
-from psycopg2.extras import RealDictCursor
-from datetime import datetime, timedelta
-from flask_mail import Mail, Message
-import secrets
-from math import ceil
-import os
-from datetime import datetime, timedelta
-from dotenv import load_dotenv
-import pusher
 from flask_wtf.csrf import CSRFProtect
+import pusher
+from dotenv import load_dotenv
+import os
+from math import ceil
+import secrets
+from flask_mail import Mail, Message
+from datetime import datetime, timedelta
+from psycopg2.extras import RealDictCursor
+import psycopg2.extras
+import psycopg2
+from flask_bcrypt import Bcrypt
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 load_dotenv()  # Carga las variables de entorno
 
@@ -456,88 +458,70 @@ def edit_job(job_id):
 @app.route('/send_message/<int:receiver_id>/<int:job_id>', methods=['POST'])
 @login_required
 def send_message(receiver_id, job_id):
-    conn = None
     try:
         message = request.form.get('message')
-
-        if not message or not message.strip():
-            return jsonify({'error': 'El mensaje no puede estar vacío'}), 400
+        if not message:
+            return jsonify({'error': 'Mensaje vacío'}), 400
 
         conn = get_db_connection()
-        cur = conn.cursor()
-
-        # Obtener información del trabajo
-        cur.execute("""
-            SELECT title, user_id 
-            FROM jobs 
-            WHERE id = %s
-        """, (job_id,))
-        job = cur.fetchone()
-
-        if not job:
-            return jsonify({'error': 'El trabajo no existe'}), 404
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
         # Insertar el mensaje
         cur.execute("""
-            INSERT INTO messages 
-                (sender_id, receiver_id, message, job_id, timestamp) 
-            VALUES 
-                (%s, %s, %s, %s, CURRENT_TIMESTAMP)
-            RETURNING 
-                id, 
-                timestamp AT TIME ZONE 'UTC' as timestamp
-        """, (current_user.id, receiver_id, message, job_id))
+            INSERT INTO messages (sender_id, receiver_id, job_id, message)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id, message, timestamp AT TIME ZONE 'UTC' as timestamp
+        """, (current_user.id, receiver_id, job_id, message))
 
-        message_data = cur.fetchone()
+        new_message = cur.fetchone()
         conn.commit()
 
-        # Preparar payload para el mensaje de chat
-        message_payload = {
-            'message_id': message_data[0],
-            'timestamp': message_data[1].isoformat(),
+        # Preparar datos para Pusher
+        message_data = {
+            'message_id': new_message['id'],
+            'message': message,
             'sender_id': current_user.id,
             'receiver_id': receiver_id,
-            'message': message,
-            'job_id': job_id
-        }
-
-        # Enviar mensaje de chat
-        pusher_client.trigger(
-            [f'private-chat-{receiver_id}', f'private-chat-{current_user.id}'],
-            'new_message',
-            message_payload
-        )
-
-        # Enviar notificación solo al receptor
-        notification_payload = {
-            'sender_id': current_user.id,
-            'sender_name': current_user.username,
             'job_id': job_id,
-            'job_title': job[0],
-            'message': message[:50] + '...' if len(message) > 50 else message
+            'timestamp': new_message['timestamp'].isoformat()
         }
 
-        pusher_client.trigger(
-            f'private-notifications-{receiver_id}',
-            'new_message_notification',
-            notification_payload
-        )
+        # Enviar a través de Pusher
+        try:
+            channel_name = f'private-chat-{receiver_id}'
+            event_name = 'new_message'
+
+            print(f"Intentando enviar mensaje a Pusher:")
+            print(f"Canal: {channel_name}")
+            print(f"Evento: {event_name}")
+            print(f"Datos: {message_data}")
+
+            pusher_client.trigger(
+                channel_name,
+                event_name,
+                message_data
+            )
+            print("✅ Mensaje enviado exitosamente a Pusher")
+
+        except Exception as pusher_error:
+            print(f"❌ Error de Pusher: {str(pusher_error)}")
+            print(f"Detalles del error: {type(pusher_error).__name__}")
+
+        cur.close()
+        conn.close()
 
         return jsonify({
             'status': 'success',
-            'message': message_payload
-        }), 200
+            'message': 'Mensaje enviado correctamente',
+            'data': message_data
+        })
 
     except Exception as e:
-        if conn:
-            conn.rollback()
         print(f"Error en send_message: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
-    finally:
-        if conn:
-            cur.close()
-            conn.close()
+        return jsonify({
+            'status': 'error',
+            'error': str(e)
+        }), 500
 
 
 @app.route('/chat/<int:user_id>/<int:job_id>')
@@ -986,11 +970,25 @@ def utility_processor():
 @app.route('/pusher/auth', methods=['POST'])
 @login_required
 def pusher_authentication():
-    auth = pusher_client.authenticate(
-        channel=request.form['channel_name'],
-        socket_id=request.form['socket_id']
-    )
-    return jsonify(auth)
+    try:
+        socket_id = request.form['socket_id']
+        channel_name = request.form['channel_name']
+
+        # Log para debugging
+        print(
+            f"Autenticando Pusher - Socket ID: {socket_id}, Canal: {channel_name}")
+
+        auth = pusher_client.authenticate(
+            channel=channel_name,
+            socket_id=socket_id
+        )
+
+        print("✅ Autenticación Pusher exitosa")
+        return jsonify(auth)
+
+    except Exception as e:
+        print(f"❌ Error en autenticación Pusher: {str(e)}")
+        return jsonify({'error': str(e)}), 403
 
 
 # Configuración de Pusher desde variables de entorno
@@ -1004,7 +1002,4 @@ pusher_client = pusher.Pusher(
 
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 5000))
-    host = os.getenv('HOST', '0.0.0.0')
-    app.run(host=host, port=port, debug=os.getenv(
-        'FLASK_ENV') == 'development')
+    app.run()
