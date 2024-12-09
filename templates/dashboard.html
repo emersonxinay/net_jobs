@@ -1,5 +1,8 @@
 {% extends "base.html" %} {% block content %}
+<div class="custom-alert-container"></div>
 <div class="container mt-5">
+  <!-- Cambiar la forma de obtener el token CSRF -->
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
   <!-- Header Section -->
   <div class="dashboard-header">
     <div class="header-content">
@@ -185,6 +188,26 @@
 
           <!-- Acciones -->
           <div class="action-box">
+            {% if current_user.is_authenticated and job.user_id ==
+            current_user.id %}
+            <div class="owner-actions">
+              <a
+                href="{{ url_for('edit_job', job_id=job.id) }}"
+                class="btn-action edit"
+              >
+                <i class="fas fa-edit"></i>
+                <span>Editar</span>
+              </a>
+              <button
+                type="button"
+                class="btn-action delete"
+                onclick="confirmDelete({{ job.id }}, event)"
+              >
+                <i class="fas fa-trash-alt"></i>
+                <span>Eliminar</span>
+              </button>
+            </div>
+            {% else %}
             <a
               href="{{ url_for('chat', user_id=job.user_id, job_id=job.id) }}"
               class="btn-action chat"
@@ -192,6 +215,7 @@
               <i class="fas fa-comments"></i>
               <span>Contactar</span>
             </a>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -327,5 +351,118 @@
 
   // Evento para el checkbox de urgente
   urgentFilter.addEventListener('change', performSearch);
+</script>
+<script>
+  function showCustomAlert(type, message) {
+      const alertContainer = document.querySelector('.custom-alert-container');
+      if (!alertContainer) {
+          console.error('No se encontró el contenedor de alertas');
+          return;
+      }
+
+      const alert = document.createElement('div');
+      alert.className = `custom-alert ${type}`;
+
+      const icon = type === 'success' ? 'check-circle' : 'exclamation-circle';
+
+      alert.innerHTML = `
+          <div class="alert-content">
+              <i class="fas fa-${icon} alert-icon"></i>
+              <p class="alert-message">${message}</p>
+          </div>
+          <button class="alert-close" onclick="this.parentElement.remove()">
+              <i class="fas fa-times"></i>
+          </button>
+      `;
+
+      // Agregar la alerta al inicio del contenedor
+      alertContainer.insertAdjacentElement('afterbegin', alert);
+
+      // Auto-eliminar después de 5 segundos
+      setTimeout(() => {
+          alert.style.animation = 'slideOut 0.3s ease-out forwards';
+          setTimeout(() => {
+              if (alert.parentElement) {
+                  alert.remove();
+              }
+          }, 300);
+      }, 5000);
+  }
+
+  window.confirmDelete = function(jobId, event) {
+      event.preventDefault();
+
+      if (confirm('¿Estás seguro de que deseas eliminar este empleo? Se eliminarán también todas las conversaciones y mensajes relacionados con este trabajo.')) {
+          const deleteButton = event.currentTarget;
+          const csrf_token = document.querySelector('input[name="csrf_token"]').value;
+
+          // Deshabilitar el botón y mostrar loading
+          const originalContent = deleteButton.innerHTML;
+          deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+          deleteButton.disabled = true;
+
+          fetch(`/delete_job/${jobId}`, {
+              method: 'POST',
+              headers: {
+                  'X-CSRF-Token': csrf_token,
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+              },
+              credentials: 'same-origin'
+          })
+          .then(response => {
+              if (!response.ok) {
+                  return response.json().then(data => {
+                      throw new Error(data.message || 'Error en el servidor');
+                  });
+              }
+              return response.json();
+          })
+          .then(data => {
+              if (data.status === 'success') {
+                  // Mostrar alerta de éxito
+                  showCustomAlert('success', data.message);
+
+                  // Eliminar la tarjeta del trabajo con animación
+                  const jobCard = deleteButton.closest('.col');
+                  if (jobCard) {
+                      jobCard.style.opacity = '0';
+                      jobCard.style.transform = 'scale(0.9)';
+                      jobCard.style.transition = 'all 0.3s ease';
+
+                      setTimeout(() => {
+                          jobCard.remove();
+                      }, 300);
+                  }
+
+                  // Recargar la página después de 2 segundos para mostrar el mensaje flash
+                  setTimeout(() => {
+                      // Guardar el mensaje en sessionStorage para mostrarlo después de la recarga
+                      sessionStorage.setItem('deleteMessage', data.message);
+                      window.location.reload();
+                  }, 2000);
+              }
+          })
+          .catch(error => {
+              console.error('Error en la eliminación:', error);
+
+              // Restaurar el botón
+              deleteButton.innerHTML = originalContent;
+              deleteButton.disabled = false;
+
+              // Mostrar alerta de error
+              showCustomAlert('error', error.message || 'No se pudo eliminar el empleo');
+          });
+      }
+  };
+
+  // Verificar si hay un mensaje guardado al cargar la página
+  document.addEventListener('DOMContentLoaded', function() {
+      const deleteMessage = sessionStorage.getItem('deleteMessage');
+      if (deleteMessage) {
+          showCustomAlert('success', deleteMessage);
+          sessionStorage.removeItem('deleteMessage');
+      }
+  });
 </script>
 {% endblock %}

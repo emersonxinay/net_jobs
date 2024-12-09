@@ -54,6 +54,12 @@
           >
             <i class="bi bi-chat-dots"></i>
             <span>Conversaciones</span>
+            <span
+              id="unread-messages-count"
+              class="badge bg-danger rounded-pill"
+              style="display: none;"
+              >0</span
+            >
           </a>
         </li>
         <li class="nav-item dropdown">
@@ -120,3 +126,98 @@
   href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
   rel="stylesheet"
 />
+
+<script>
+  {% if current_user.is_authenticated %}
+  let unreadCount = 0;
+
+  // Función para actualizar el contador de mensajes
+  function updateUnreadCount(count) {
+      unreadCount = count;
+      const badge = document.getElementById('unread-messages-count');
+      if (badge) {
+          badge.textContent = unreadCount;
+          badge.style.display = unreadCount > 0 ? 'inline' : 'none';
+      }
+  }
+
+  // Función para decrementar el contador
+  function decrementUnreadCount(amount = 1) {
+      updateUnreadCount(Math.max(0, unreadCount - amount));
+  }
+
+  // Función para obtener mensajes no leídos
+  function fetchUnreadMessages() {
+      fetch('/unread_messages_count')
+          .then(response => response.json())
+          .then(data => {
+              updateUnreadCount(data.count);
+          })
+          .catch(error => console.error('Error:', error));
+  }
+
+  // Cargar conteo inicial
+  fetchUnreadMessages();
+
+  // Escuchar nuevos mensajes
+  const notificationChannel = pusherNotifications.subscribe('private-notifications-{{ current_user.id }}');
+
+  notificationChannel.bind('new_message_notification', function(data) {
+      const currentPath = window.location.pathname;
+      const chatPath = `/chat/${data.sender_id}/${data.job_id}`;
+
+      if (currentPath !== chatPath) {
+          updateUnreadCount(unreadCount + 1);
+
+          // Mostrar notificación toast
+          const toastHTML = `
+              <div class="toast show bg-dark text-white" role="alert" aria-live="assertive" aria-atomic="true">
+                  <div class="toast-header bg-primary text-white">
+                      <i class="bi bi-envelope me-2"></i>
+                      <strong class="me-auto">Nuevo mensaje</strong>
+                      <small>${new Date().toLocaleTimeString()}</small>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                  </div>
+                  <div class="toast-body">
+                      <strong>${data.sender_name}</strong> te ha enviado un mensaje sobre:
+                      <br>
+                      ${data.job_title}
+                      <div class="mt-2">
+                          <a href="/chat/${data.sender_id}/${data.job_id}"
+                             class="btn btn-primary btn-sm"
+                             onclick="markMessagesAsRead(${data.sender_id}, ${data.job_id})">
+                              Ver mensaje
+                          </a>
+                      </div>
+                  </div>
+              </div>
+          `;
+
+          const container = document.getElementById('notification-container');
+          container.insertAdjacentHTML('beforeend', toastHTML);
+
+          setTimeout(() => {
+              const toasts = container.getElementsByClassName('toast');
+              if (toasts.length > 0) {
+                  toasts[0].remove();
+              }
+          }, 5000);
+      }
+  });
+
+  // Función para marcar mensajes como leídos
+  function markMessagesAsRead(otherUserId, jobId) {
+      fetch(`/mark_messages_read/${otherUserId}/${jobId}`)
+          .then(response => response.json())
+          .then(data => {
+              if (data.status === 'success') {
+                  fetchUnreadMessages(); // Actualizar contador
+              }
+          })
+          .catch(error => console.error('Error:', error));
+  }
+
+  // Exponer la función globalmente para usarla en otras páginas
+  window.markMessagesAsRead = markMessagesAsRead;
+  {% endif %}
+</script>

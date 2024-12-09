@@ -61,7 +61,12 @@
 
   <!-- Área de entrada de mensaje -->
   <div class="message-input-container">
-    <form id="message-form">
+    <form
+      id="message-form"
+      action="{{ url_for('send_message', receiver_id=chat_user.id, job_id=job.id) }}"
+      method="POST"
+    >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <div class="input-wrapper">
         <textarea
           id="message"
@@ -79,41 +84,45 @@
   </div>
 </div>
 
-<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+<!-- Scripts de Pusher -->
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
-  const socket = io.connect('http://' + document.domain + ':' + location.port, {
-    transports: ['websocket'],
-    upgrade: false
-  });
+  // Variables necesarias
+  const currentUserId = {{ current_user.id }};
+  const currentJobId = {{ job.id }};
+  const otherUserId = {{ chat_user.id }};
 
-  const messagesContainer = document.getElementById('messages');
-  const messageForm = document.getElementById('message-form');
-  const messageInput = document.getElementById('message');
-
-  // Auto-scroll al último mensaje
-  function scrollToBottom() {
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  // Función para formatear la fecha
+  function formatDateTime(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
-  // Ajustar altura del textarea
-  function adjustTextarea() {
-    messageInput.style.height = 'auto';
-    messageInput.style.height = messageInput.scrollHeight + 'px';
-  }
+  // Función para agregar mensaje al chat
+  function appendMessage(data, isLocalMessage = false) {
+    // Si no es un mensaje local, verificar si ya existe
+    if (!isLocalMessage) {
+      const existingMessage = document.querySelector(`[data-message-id="${data.message_id}"]`);
+      if (existingMessage) return; // No agregar si ya existe
+    }
 
-  // Agregar mensaje al chat
-  function addMessageToChat(data) {
-    const isCurrentUser = data.sender_id === {{ current_user.id }};
+    const messagesContainer = document.getElementById('messages');
+    const isOutgoing = data.sender_id === currentUserId;
+
     const messageHTML = `
-      <div class="message-wrapper ${isCurrentUser ? 'outgoing' : 'incoming'}">
+      <div class="message-wrapper ${isOutgoing ? 'outgoing' : 'incoming'}"
+           data-message-id="${data.message_id}">
         <div class="message">
           <div class="message-content">${data.message}</div>
           <div class="message-meta">
             <span class="message-time">
               <i class="far fa-clock"></i>
-              ${new Date().toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}
+              ${formatDateTime(data.timestamp)}
             </span>
-            ${isCurrentUser ? '<span class="message-status"><i class="fas fa-check-double"></i></span>' : ''}
+            ${isOutgoing ? '<span class="message-status"><i class="fas fa-check-double"></i></span>' : ''}
           </div>
         </div>
       </div>
@@ -123,40 +132,76 @@
     scrollToBottom();
   }
 
-  // Event Listeners
-  messageForm.addEventListener('submit', function(e) {
+  // Inicializar Pusher
+  const pusher = new Pusher('{{ config.PUSHER_KEY }}', {
+    cluster: '{{ config.PUSHER_CLUSTER }}',
+    encrypted: true,
+    authEndpoint: '/pusher/auth'
+  });
+
+  // Suscribirse al canal privado
+  const channel = pusher.subscribe(`private-chat-${currentUserId}`);
+
+  // Manejar eventos de conexión
+  pusher.connection.bind('connected', () => {
+    console.log('Conectado a Pusher');
+  });
+
+  // Escuchar nuevos mensajes
+  channel.bind('new_message', function(data) {
+    console.log('Mensaje recibido:', data);
+    if (data.job_id === currentJobId) {
+      appendMessage(data);
+    }
+  });
+
+  // Manejar envío del formulario
+  document.getElementById('message-form').addEventListener('submit', function(e) {
     e.preventDefault();
+    const messageInput = document.getElementById('message');
     const message = messageInput.value.trim();
 
-    if (!message) return;
+    if (message) {
+      // Limpiar el input inmediatamente
+      messageInput.value = '';
 
-    socket.emit('send_message', {
-      sender_id: {{ current_user.id }},
-      receiver_id: {{ chat_user.id }},
-      job_id: {{ request.view_args['job_id'] }},
-      message: message
-    });
-
-    messageInput.value = '';
-    adjustTextarea();
+      fetch(this.action, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `message=${encodeURIComponent(message)}`
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        // El mensaje se mostrará a través del evento Pusher
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error al enviar el mensaje');
+        // Restaurar el mensaje en el input si hubo error
+        messageInput.value = message;
+      });
+    }
   });
 
-  messageInput.addEventListener('input', adjustTextarea);
+  // Función para scroll automático
+  function scrollToBottom() {
+    const messagesContainer = document.getElementById('messages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
 
-  // Socket events
-  socket.on('connect', () => console.log('Conectado al WebSocket'));
-  socket.on('connect_error', (error) => console.error('Error de conexión:', error));
-  socket.on('disconnect', (reason) => console.log('Desconectado:', reason));
+  // Scroll al cargar la página
+  scrollToBottom();
 
-  socket.on('new_message', function(data) {
-    console.log('Mensaje recibido:', data);
-    addMessageToChat(data);
-  });
-
-  // Inicialización
-  document.addEventListener('DOMContentLoaded', () => {
-    scrollToBottom();
-    adjustTextarea();
+  // Marcar mensajes como leídos al cargar la página
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof markMessagesAsRead === 'function') {
+      markMessagesAsRead(otherUserId, currentJobId);
+    }
   });
 </script>
 {% endblock %}

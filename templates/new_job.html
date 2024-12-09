@@ -12,6 +12,8 @@
 
   <div class="job-form-card">
     <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
       <div class="form-grid">
         <!-- Título y Descripción -->
         <div class="form-section">

@@ -32,6 +32,7 @@
   <!-- Card del perfil -->
   <div class="profile-card">
     <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <!-- Email -->
       <div class="form-section">
         <div class="input-group">

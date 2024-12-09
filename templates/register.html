@@ -34,6 +34,7 @@
 
     <!-- Formulario -->
     <form method="POST" class="auth-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <!-- Username -->
       <div class="input-group">
         <label for="username">

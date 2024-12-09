@@ -1,107 +1,143 @@
 {% extends "base.html" %} {% block content %}
-<div class="conversations-container">
-  <div class="conversations-header">
-    <h2>
-      <i class="fas fa-comments"></i>
-      Tus Conversaciones
-    </h2>
+<div class="container mt-5">
+  <div class="conversations-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1 class="conversations-title">
+        <i class="fas fa-comments gradient-icon"></i>
+        Mis Conversaciones
+      </h1>
+      <div class="conversations-stats">
+        <span class="badge bg-primary">
+          <i class="fas fa-envelope me-2"></i>
+          Total: {{ conversations|length }}
+        </span>
+      </div>
+    </div>
   </div>
 
-  {% if conversations %}
-  <div class="conversations-table">
-    <!-- Encabezados -->
-    <div class="table-header">
-      <div class="col-user">Usuario</div>
-      <div class="col-job">Empleo</div>
-      <div class="col-date">Fecha</div>
-      <div class="col-time">Horario</div>
-      <div class="col-price">Pago</div>
-      <div class="col-actions">Acciones</div>
-    </div>
-
-    <!-- Filas de conversaciones -->
-    <div class="table-body">
-      {% for conversation in conversations|sort(attribute='last_message_time',
-      reverse=True) %}
-      <div class="table-row">
-        <div class="col-user">
-          <div class="user-info">
-            <i class="fas fa-user-circle"></i>
-            <span>{{ conversation.username }}</span>
+  <div class="conversations-container">
+    {% if conversations %}
+    <div class="conversations-list">
+      {% for conv in conversations %}
+      <div
+        class="conversation-row {% if conv.unread_count > 0 %}unread-conversation{% endif %}"
+      >
+        <div class="row-content">
+          <div class="user-section">
+            <div class="user-avatar">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="user-details">
+              <span class="username">{{ conv.username }}</span>
+              {% if conv.unread_count > 0 %}
+              <span class="badge bg-danger pulse">{{ conv.unread_count }}</span>
+              {% endif %}
+            </div>
           </div>
-        </div>
 
-        <div class="col-job">
-          <div class="job-info">
-            <i class="fas fa-briefcase"></i>
-            <span>{{ conversation.job_title or 'Sin especificar' }}</span>
-          </div>
-        </div>
-
-        <div class="col-date">
-          <div class="date-info">
-            <i class="fas fa-calendar"></i>
-            <span>{{ conversation.job_date or 'Sin fecha' }}</span>
-          </div>
-        </div>
-
-        <div class="col-time">
-          <div class="time-info">
-            <i class="fas fa-clock"></i>
-            <span
-              >{{ '{:.1f}h'.format(conversation.job_hours) if
-              conversation.job_hours else 'N/A' }}</span
-            >
-          </div>
-        </div>
-
-        <div class="col-price">
-          <div class="price-info">
-            <i class="fas fa-dollar-sign"></i>
-            <span
-              >{{ '${:.2f}'.format(conversation.job_payment) if
-              conversation.job_payment else 'N/A' }}</span
-            >
-          </div>
-        </div>
-
-        <div class="col-actions">
-          <div class="action-buttons">
+          <div class="job-section">
             <a
-              href="{{ url_for('chat', user_id=conversation.other_user_id, job_id=conversation.job_id) }}"
-              class="btn-action chat"
-              title="Ver chat"
+              href="{{ url_for('chat', user_id=conv.other_user_id, job_id=conv.job_id) }}"
+              class="job-link"
+              onclick="markMessagesAsRead({{ conv.other_user_id }}, {{ conv.job_id }})"
             >
-              <i class="fas fa-comments"></i>
+              <h3 class="job-title">{{ conv.job_title }}</h3>
+              <div class="job-details">
+                <span class="job-hours">
+                  <i class="fas fa-clock"></i>
+                  {{ conv.job_hours|round|int }} horas
+                </span>
+                <span class="job-payment">
+                  <i class="fas fa-money-bill-wave"></i>
+                  ${{ conv.job_payment }}
+                </span>
+              </div>
             </a>
-            <form
-              action="{{ url_for('delete_chat', user_id=conversation.other_user_id, job_id=conversation.job_id) }}"
-              method="POST"
-              class="d-inline"
-              onsubmit="return confirm('¿Eliminar esta conversación?');"
-            >
-              <button type="submit" class="btn-action delete" title="Eliminar">
+          </div>
+
+          <div class="message-section">
+            <div class="message-preview">
+              {{ conv.last_message[:100] + '...' if conv.last_message|length >
+              100 else conv.last_message }}
+            </div>
+            <div class="message-time">
+              <i class="far fa-clock me-1"></i>
+              {{ conv.last_message_time.strftime('%d/%m/%Y %H:%M') }}
+            </div>
+          </div>
+
+          <div class="status-section">
+            {% if conv.unread_count > 0 %}
+            <span class="status-badge unread">
+              <i class="fas fa-envelope"></i>
+              Sin leer
+            </span>
+            {% else %}
+            <span class="status-badge read">
+              <i class="fas fa-check-double"></i>
+              Leído
+            </span>
+            {% endif %}
+          </div>
+
+          <div class="action-section">
+            <div class="action-buttons">
+              <a
+                href="{{ url_for('chat', user_id=conv.other_user_id, job_id=conv.job_id) }}"
+                class="btn btn-primary btn-action"
+                onclick="markMessagesAsRead({{ conv.other_user_id }}, {{ conv.job_id }})"
+              >
+                <i class="fas fa-comments"></i>
+                <span class="btn-text">Chat</span>
+              </a>
+              <button
+                class="btn btn-danger btn-action"
+                onclick="confirmDelete({{ conv.other_user_id }}, {{ conv.job_id }})"
+              >
                 <i class="fas fa-trash-alt"></i>
               </button>
-            </form>
+            </div>
           </div>
         </div>
       </div>
       {% endfor %}
     </div>
-  </div>
-  {% else %}
-  <div class="no-conversations">
-    <i class="fas fa-comments-alt"></i>
-    <p>No tienes conversaciones activas</p>
-  </div>
-  {% endif %}
-
-  <div class="back-button-container">
-    <a href="{{ url_for('dashboard') }}" class="back-button">
-      <i class="fas fa-arrow-left"></i>
-      <span>Volver al Dashboard</span>
-    </a>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-comments-alt"></i>
+      <h3>No tienes conversaciones activas</h3>
+      <p>Cuando inicies una conversación, aparecerá aquí.</p>
+    </div>
+    {% endif %}
   </div>
 </div>
+
+<script>
+  function confirmDelete(userId, jobId) {
+    if (confirm('¿Estás seguro de que deseas eliminar esta conversación?')) {
+      fetch(`/delete_chat/${userId}/${jobId}`, {
+        method: 'POST',
+      })
+      .then(response => {
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Error al eliminar la conversación');
+        }
+      });
+    }
+  }
+
+  const pusher = new Pusher('{{ config.PUSHER_KEY }}', {
+    cluster: '{{ config.PUSHER_CLUSTER }}',
+    encrypted: true
+  });
+
+  const channel = pusher.subscribe('private-notifications-{{ current_user.id }}');
+  channel.bind('new_message_notification', function(data) {
+    if (window.location.pathname === '/conversations') {
+      window.location.reload();
+    }
+  });
+</script>
 {% endblock %}
