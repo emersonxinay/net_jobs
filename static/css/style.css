@@ -38,14 +38,49 @@ main {
   flex: 1; /* Asegura que el contenido ocupe todo el espacio disponible */
 }
 
-/* Navbar */
+/* Navbar principal */
 .navbar {
-  background: linear-gradient(to bottom right, #6a11cb, #2575fc); /* Degradado de morado a azul */
-
+  background: linear-gradient(to bottom right, #6a11cb, #2575fc);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 1rem 0;
-  transition: all 0.3s ease;
+  padding: 0.5rem 0;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1030;
+  transform: translateY(0);
+  transition: transform 0.3s;
+}
+
+.navbar.navbar-hidden {
+  transform: translateY(-100%);
+}
+
+/* Contenedor del logo */
+.logo-container {
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Logo del navbar */
+.navbar-logo {
+  width: auto;
+  height: 160%;
+  object-fit: cover;
+  object-position: center 20%;
+}
+
+@media (max-width: 768px) {
+  .logo-container {
+    height: 3.5rem;
+  }
+  
+  .navbar-logo {
+    height: 140%;
+  }
 }
 
 .navbar.scrolled {
@@ -55,22 +90,6 @@ main {
     rgba(42, 46, 113, 0.98) 100%
   );
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-.logo-container {
-  height: 50px;
-  display: flex;
-  align-items: center;
-}
-
-.navbar-logo {
-  height: 100%;
-  width: auto;
-  transition: transform 0.3s ease;
-}
-
-.navbar-logo:hover {
-  transform: scale(1.05);
 }
 
 .nav-link-animated {
@@ -443,22 +462,18 @@ main {
 
 /* Footer */
 footer {
-  background: linear-gradient(90deg, #4c6ef5, #4f9fff, #8b94e5);
+  background: linear-gradient(90deg, #4c6ef5, #0d74f2, #5563e4);
   color: white;
-  position: relative;
+  
   bottom: 0;
   width: 100%;
   padding: 10px 0;
   box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
   text-align: center;
-  min-height: 50px;
 }
 
 /* Asegura que el footer siempre esté al fondo */
-footer, .container {
-  position: relative;
-  z-index: 10;
-}
+
 
 /* Social icons */
 .social-icons a {
@@ -834,7 +849,7 @@ h3.text-center {
   left: 0;
   right: 0;
   bottom: 0;
-  background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zm60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,0.05)' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zm60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,0.05)' fill-rule='evenodd'/%3E%3C/svg%3E");
   z-index: 0;
 }
 
@@ -2753,4 +2768,225 @@ textarea:focus {
         width: 14px;
         height: 14px;
     }
+}
+
+/* Footer Específico */
+.custom-footer {
+
+  color: white;
+}
+
+/* Logo del Footer */
+.custom-footer .footer-brand img {
+  height: 60px;
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgba(0, 198, 255, 0.2));
+  transition: transform 0.3s ease;
+}
+
+.custom-footer .footer-brand img:hover {
+  transform: scale(1.05);
+}
+
+/* Descripción */
+.custom-footer .footer-description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-top: 1rem;
+}
+
+.custom-footer .footer-description .highlight {
+  color: #00c6ff;
+  font-weight: 600;
+}
+
+/* Títulos */
+.custom-footer .footer-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: white;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.custom-footer .footer-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 50px;
+  height: 2px;
+  background: linear-gradient(90deg, #00c6ff, transparent);
+}
+
+/* Redes Sociales */
+.custom-footer .social-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.custom-footer .social-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.custom-footer .social-link {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: white;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.custom-footer .social-link:hover {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 198, 255, 0.3);
+}
+
+/* Divisor */
+.custom-footer .footer-divider-container {
+  margin: 3rem 0 2rem;
+}
+
+.custom-footer .footer-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
+/* Footer Bottom */
+.custom-footer .footer-bottom {
+  text-align: center;
+}
+
+.custom-footer .copyright {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Enlaces */
+.custom-footer .bottom-link {
+  color: #00c6ff;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.custom-footer .bottom-link:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+/* Tooltip */
+.custom-footer .social-link[data-tooltip]::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.8rem;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.custom-footer .social-link:hover[data-tooltip]::before {
+  transform: translateX(-50%) scale(1);
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .custom-footer {
+    padding: 3rem 1rem 1.5rem;
+  }
+  
+  .custom-footer .footer-brand img {
+    height: 50px;
+  }
+  
+  .custom-footer .social-links {
+    justify-content: center;
+  }
+}
+
+.custom-footer-pie {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  padding: 3rem 0 1.5rem;
+  width: 100%;
+}
+
+/* Ajuste de los contenedores de logos */
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.footer-logo {
+  height: 60px; /* Aumentado de 40px */
+  width: auto;
+  object-fit: contain;
+}
+
+.navbar-logo {
+  height: 50px; /* Aumentado de 30px */
+  width: auto;
+  object-fit: contain;
+  max-width: 200px; /* Asegura que no sea demasiado ancha */
+}
+
+/* Ajuste del contenedor principal */
+.container {
+  max-width: 1200px; /* Ajusta esto según necesites */
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* Ajuste de las columnas */
+.col-12.col-sm-6.col-lg-4 {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+/* Media Queries */
+@media (max-width: 767.98px) {
+  .footer-logo {
+    height: 50px;
+  }
+  
+  .navbar-logo {
+    height: 40px;
+  }
+  
+  .container {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+}
+
+@media (min-width: 768px) {
+  .row {
+    margin-right: -15px;
+    margin-left: -15px;
+    justify-content: space-between; /* Distribuye el espacio uniformemente */
+  }
 }

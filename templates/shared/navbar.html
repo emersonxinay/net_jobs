@@ -220,4 +220,31 @@
   // Exponer la función globalmente para usarla en otras páginas
   window.markMessagesAsRead = markMessagesAsRead;
   {% endif %}
+
+  let lastScrollTop = 0;
+  const navbar = document.querySelector('.navbar');
+  const scrollThreshold = 100; // Umbral de scroll para activar el comportamiento
+
+  window.addEventListener('scroll', () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      // Verifica si el scroll ha superado el umbral
+      if (scrollTop > scrollThreshold) {
+          // Scrolling hacia abajo
+          if (scrollTop > lastScrollTop) {
+              navbar.classList.remove('navbar-visible');
+              navbar.classList.add('navbar-hidden');
+          }
+          // Scrolling hacia arriba
+          else {
+              navbar.classList.remove('navbar-hidden');
+              navbar.classList.add('navbar-visible');
+          }
+      } else {
+          // Resetea las clases cuando está cerca del top
+          navbar.classList.remove('navbar-hidden', 'navbar-visible');
+      }
+
+      lastScrollTop = scrollTop;
+  });
 </script>
