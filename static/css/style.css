@@ -2939,13 +2939,13 @@ textarea:focus {
 }
 
 .footer-logo {
-  height: 60px; /* Aumentado de 40px */
+  height: 7em; /* Aumentado de 40px */
   width: auto;
   object-fit: contain;
 }
 
 .navbar-logo {
-  height: 50px; /* Aumentado de 30px */
+  height: 7em; /* Aumentado de 30px */
   width: auto;
   object-fit: contain;
   max-width: 200px; /* Asegura que no sea demasiado ancha */
