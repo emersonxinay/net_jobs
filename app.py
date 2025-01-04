@@ -990,6 +990,13 @@ def pusher_authentication():
         print(f"❌ Error en autenticación Pusher: {str(e)}")
         return jsonify({'error': str(e)}), 403
 
+# error 404
+
+
+@app.errorhandler(404)
+def page_not_founf(e):
+    return render_template("404.html"), 404
+
 
 # Configuración de Pusher desde variables de entorno
 pusher_client = pusher.Pusher(

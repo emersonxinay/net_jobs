@@ -1,0 +1,15 @@
+{% extends "base.html" %} {% block title %} Página No Existe{% endblock %}
+{%block linke %}
+<link
+  rel="stylesheet"
+  href=" {{ url_for('static', filename='css/404.css') }}"
+/>
+{% endblock %} {% block content %}
+<div class="container404">
+  <i class="fas fa-exclamation-triangle icon"></i>
+  <h1>404</h1>
+  <h2>Página No Encontrada</h2>
+  <p>Lo sentimos, la página que estás buscando no existe.</p>
+  <p><a href="{{ url_for('home') }}">Volver a la página de inicio</a></p>
+</div>
+{%endblock%}

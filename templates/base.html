@@ -17,8 +17,10 @@
     <!-- Estilos específicos para esta página -->
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/style.css') }}"
+      href=" {{ url_for('static', filename='css/style.css') }}"
     />
+    {% block linke %} {% endblock %}
+
     <!-- Font Awesome -->
     <link
       rel="stylesheet"

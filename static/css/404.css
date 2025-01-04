@@ -1,0 +1,28 @@
+.container404 {
+  text-align: center;
+}
+.container404 h1 {
+  font-size: 100px;
+  margin: 0;
+  color: #e74c3c;
+}
+.container404 h2 {
+  font-size: 24px;
+  margin: 10px 0;
+}
+.container404 p {
+  font-size: 18px;
+  margin: 20px 0;
+}
+.container404 a {
+  text-decoration: none;
+  color: #3498db;
+  font-weight: bold;
+}
+.container404 a:hover {
+  text-decoration: underline;
+}
+.container404 .icon {
+  font-size: 50px;
+  color: #e74c3c;
+}
